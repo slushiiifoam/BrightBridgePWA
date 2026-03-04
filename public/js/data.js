@@ -1,91 +1,46 @@
-// Data module - handles data storage via Netlify Blobs
+/* public/js/data.js */
+import Auth from "./auth.js";
+import { supabase } from "./supabase.js";
+
 const Data = {
-    async saveItem(content) {
-        const user = Auth.getUser();
-        if (!user) {
-            throw new Error('User not authenticated');
-        }
-        
-        const item = {
-            id: Date.now().toString(),
-            content: content,
-            userId: user.id,
-            timestamp: new Date().toISOString()
-        };
-        
-        try {
-            const response = await fetch('/.netlify/functions/save-data', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${Auth.getToken()}`
-                },
-                body: JSON.stringify(item)
-            });
-            
-            if (!response.ok) {
-                const error = await response.json();
-                throw new Error(error.message || 'Failed to save data');
-            }
-            
-            return await response.json();
-        } catch (error) {
-            console.error('Error saving data:', error);
-            throw error;
-        }
-    },
-    
-    async loadItems() {
-        const user = Auth.getUser();
-        if (!user) {
-            throw new Error('User not authenticated');
-        }
-        
-        try {
-            const response = await fetch(`/.netlify/functions/get-data?userId=${user.id}`, {
-                headers: {
-                    'Authorization': `Bearer ${Auth.getToken()}`
-                }
-            });
-            
-            if (!response.ok) {
-                const error = await response.json();
-                throw new Error(error.message || 'Failed to load data');
-            }
-            
-            const data = await response.json();
-            return data.items || [];
-        } catch (error) {
-            console.error('Error loading data:', error);
-            throw error;
-        }
-    },
-    
-    async deleteItem(itemId) {
-        const user = Auth.getUser();
-        if (!user) {
-            throw new Error('User not authenticated');
-        }
-        
-        try {
-            const response = await fetch('/.netlify/functions/delete-data', {
-                method: 'DELETE',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${Auth.getToken()}`
-                },
-                body: JSON.stringify({ itemId, userId: user.id })
-            });
-            
-            if (!response.ok) {
-                const error = await response.json();
-                throw new Error(error.message || 'Failed to delete data');
-            }
-            
-            return await response.json();
-        } catch (error) {
-            console.error('Error deleting data:', error);
-            throw error;
-        }
-    }
+  async saveItem(content) {
+    const userId = Auth.getUserId();
+    if (!userId) throw new Error("not authenticated");
+
+    const { data, error } = await supabase
+      .from("items")
+      .insert([{ content, user_id: userId, timestamp: new Date() }]);
+
+    if (error) throw error;
+    return data;
+  },
+
+  async loadItems() {
+    const userId = Auth.getUserId();
+    if (!userId) throw new Error("not authenticated");
+
+    const { data, error } = await supabase
+      .from("items")
+      .select("*")
+      .eq("user_id", userId);
+
+    if (error) throw error;
+    return data;
+  },
+
+  async deleteItem(itemId) {
+    const userId = Auth.getUserId();
+    if (!userId) throw new Error("not authenticated");
+
+    const { error } = await supabase
+      .from("items")
+      .delete()
+      .eq("id", itemId)
+      .eq("user_id", userId);
+
+    if (error) throw error;
+    return true;
+  }
 };
+
+export default Data;

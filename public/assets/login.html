@@ -21,18 +21,18 @@
     
     <div class="login-card fade-in">
       <h1 class="text-center text-white mb-lg">Log In / Sign Up</h1>
-      <form id="loginForm" class="login-form" onsubmit="handleLogin(event)">
+      <form id="loginForm" class="login-form">
         <div class="form-group">
-          <label for="username" class="sr-only">Username</label>
+          <label for="email" class="sr-only">Email</label>
           <input 
-            type="text" 
-            id="username" 
-            name="username" 
+            type="email" 
+            id="email" 
+            name="email" 
             class="form-input" 
-            placeholder="username"
+            placeholder="email"
             required
             autocomplete="username"
-            aria-label="Enter your username"
+            aria-label="Enter your email"
           >
         </div>
         <div class="form-group">
@@ -69,36 +69,62 @@
     quick exit
   </a>
   
+  <!-- make page visible even if module errors out -->
   <script>
-    function handleLogin(event) {
-      event.preventDefault();
-      
-      const username = document.getElementById('username').value;
-      const password = document.getElementById('password').value;
-      
-      if (username && password) {
-        localStorage.setItem('brightbridge_username', username);
-        
-        const isFirstTime = !localStorage.getItem('brightbridge_returning_user');
-        
-        if (isFirstTime) {
-          localStorage.setItem('brightbridge_returning_user', 'true');
-          
-          window.location.href = 'home-first-time.html';
-        } else {
-          window.location.href = 'home.html';
-        }
-      }
-    }
-    
     window.addEventListener('load', () => {
       document.body.style.opacity = '1';
     });
   </script>
+  <script type="module">
+    // always show page when loaded
+    window.addEventListener("load", () => {
+      document.body.style.opacity = "1";
+    });
 
-  <script src="./js/auth.js"></script>
-  <script src="./js/data.js"></script>
-  <script src="./js/app.js"></script>
+    import("../js/auth.js")
+      .then(({ default: Auth }) => {
+        console.log("auth module loaded");
+
+        async function handleAuth(event) {
+          console.log('handleAuth called');
+          event.preventDefault();
+
+          const email = document.getElementById("email").value.trim();
+          const password = document.getElementById("password").value;
+          console.log('credentials', email, password);
+
+          if (!email || !password) return;
+
+          try {
+            const loginResult = await Auth.login(email, password);
+            console.log('login result', loginResult);
+            window.location.href = "home.html";
+          } catch (err) {
+            console.error('login error', err);
+            if (err.status === 400 || (err.message && err.message.includes("Invalid login"))) {
+              try {
+                const signupResult = await Auth.signUp(email, password);
+                console.log('signup result', signupResult);
+                window.location.href = "home-first-time.html";
+              } catch (signupErr) {
+                console.error('signup error', signupErr);
+                alert("Signup failed: " + signupErr.message);
+              }
+            } else {
+              alert("Login failed: " + err.message);
+            }
+          }
+        }
+
+        document.getElementById('loginForm').addEventListener('submit', handleAuth);
+      })
+      .catch((e) => {
+        console.error("failed to import auth module", e);
+      });
+  </script>
+
+  <!-- load main app module (it imports Auth/Data itself) -->
+  <script type="module" src="../js/app.js"></script>
   
 </body>
 </html>

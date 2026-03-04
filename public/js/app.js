@@ -1,3 +1,6 @@
+import Auth from "./auth.js";
+import Data from "./data.js";
+
 // Main app module - handles UI and orchestrates auth and data modules
 const App = {
     elements: {},
@@ -190,3 +193,4 @@ if (document.readyState === 'loading') {
     App.init();
 }
 
+export default App;
