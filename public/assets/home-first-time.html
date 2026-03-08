@@ -98,11 +98,67 @@
     let selectedMood = null;
     
     window.addEventListener('load', () => {
-      const username = localStorage.getItem('brightbridge_username') || 'User';
-      document.getElementById('userName').textContent = username;
+      const cachedName = localStorage.getItem('brightbridge_username') || 'User';
+      setWelcomeName(cachedName);
+
+      if (window.netlifyIdentity) {
+        window.netlifyIdentity.init();
+
+        const syncFromUser = (user) => {
+          const resolvedName = getDisplayNameFromUser(user);
+          if (resolvedName) {
+            localStorage.setItem('brightbridge_username', resolvedName);
+            setWelcomeName(resolvedName);
+          }
+        };
+
+        syncFromUser(window.netlifyIdentity.currentUser());
+        window.netlifyIdentity.on('init', syncFromUser);
+        window.netlifyIdentity.on('login', syncFromUser);
+      }
       
       document.body.style.opacity = '1';
     });
+
+    function setWelcomeName(name) {
+      document.getElementById('userName').textContent = (name || 'User').trim() || 'User';
+    }
+
+    function getDisplayNameFromUser(user) {
+      if (!user) {
+        return '';
+      }
+
+      const metadata = user.user_metadata || {};
+      const identityData = Array.isArray(user.identities) && user.identities.length > 0
+        ? (user.identities[0].identity_data || {})
+        : {};
+
+      const candidates = [
+        metadata.full_name,
+        metadata.name,
+        metadata.fullName,
+        identityData.full_name,
+        identityData.name,
+        user.email,
+        identityData.email
+      ];
+
+      for (const candidate of candidates) {
+        if (!candidate || typeof candidate !== 'string') {
+          continue;
+        }
+
+        const cleaned = candidate.trim();
+        if (!cleaned) {
+          continue;
+        }
+
+        return cleaned.includes('@') ? cleaned.split('@')[0] : cleaned;
+      }
+
+      return '';
+    }
     
     function selectMood(mood) {
       selectedMood = mood;

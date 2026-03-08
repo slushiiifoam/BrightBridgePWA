@@ -92,17 +92,39 @@ const App = {
         }
 
         const metadata = user.user_metadata || {};
-        const metadataName = metadata.full_name || metadata.name || metadata.fullName || '';
-        if (metadataName) {
-            return metadataName;
+        const identityData = Array.isArray(user.identities) && user.identities.length > 0
+            ? user.identities[0].identity_data || {}
+            : {};
+
+        const candidates = [
+            metadata.full_name,
+            metadata.name,
+            metadata.fullName,
+            identityData.full_name,
+            identityData.name,
+            user.email,
+            identityData.email,
+            user.profile && user.profile.email
+        ];
+
+        for (const candidate of candidates) {
+            if (!candidate || typeof candidate !== 'string') {
+                continue;
+            }
+
+            const cleaned = candidate.trim();
+            if (!cleaned) {
+                continue;
+            }
+
+            if (cleaned.includes('@')) {
+                return cleaned.split('@')[0];
+            }
+
+            return cleaned;
         }
 
-        const fromEmail = user.email || user.profile && user.profile.email || '';
-        if (!fromEmail.includes('@')) {
-            return fromEmail;
-        }
-
-        return fromEmail.split('@')[0];
+        return '';
     },
 
     syncStoredUsername(user) {
