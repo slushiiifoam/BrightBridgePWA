@@ -3,6 +3,8 @@ const App = {
     elements: {},
     
     init() {
+        Auth.init()
+
         // Cache DOM elements
         this.elements = {
             authView: document.getElementById('auth-view'),
@@ -46,13 +48,16 @@ const App = {
     },
     
     updateAuthUI() {
-        if (Auth.isLoggedIn()) {
+        const user = netlifyIdentity.currentUser();
+
+        if (user) {
+            Auth.user = user;
             this.showAppView();
             this.loadUserData();
         } else {
             this.showAuthView();
         }
-    },
+},
     
     showAuthView() {
         this.elements.authView.classList.remove('hidden');

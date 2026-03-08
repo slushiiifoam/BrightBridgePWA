@@ -67,10 +67,3 @@ const Auth = {
         return this.user ? this.user.token.access_token : null;
     }
 };
-
-// Initialize auth when DOM is ready
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', () => Auth.init());
-} else {
-    Auth.init();
-}
