@@ -24,12 +24,14 @@ const App = {
     },
     
     setupEventListeners() {
-        this.elements.loginBtn.addEventListener('click', () => {
-            Auth.login();
+        this.elements.loginBtn.addEventListener('click', async () => {
+            await Auth.login();
+            this.updateAuthUI();
         });
         
-        this.elements.logoutBtn.addEventListener('click', () => {
-            Auth.logout();
+        this.elements.logoutBtn.addEventListener('click', async () => {
+            await Auth.logout();
+            this.updateAuthUI();
         });
         
         this.elements.saveBtn.addEventListener('click', () => {
