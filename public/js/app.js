@@ -1,6 +1,7 @@
 // Main app module - handles UI and orchestrates auth and data modules
 const App = {
     elements: {},
+    isRedirecting: false,
     
     init() {
         Auth.init()
@@ -52,12 +53,58 @@ const App = {
 
         if (user) {
             Auth.user = user;
+
+            if (this.handlePostLoginRedirect(user)) {
+                return;
+            }
+
             this.showAppView();
             this.loadUserData();
         } else {
             this.showAuthView();
         }
 },
+
+    handlePostLoginRedirect(user) {
+        const isLoginPage = window.location.pathname.includes('/login.html');
+        if (!isLoginPage || this.isRedirecting) {
+            return false;
+        }
+
+        const displayName = this.getDisplayName(user);
+        if (displayName && !localStorage.getItem('brightbridge_username')) {
+            localStorage.setItem('brightbridge_username', displayName);
+        }
+
+        const isReturningUser = localStorage.getItem('brightbridge_returning_user') === 'true';
+        const destination = isReturningUser ? '/assets/home.html' : '/assets/home-first-time.html';
+
+        if (!isReturningUser) {
+            localStorage.setItem('brightbridge_returning_user', 'true');
+        }
+
+        this.isRedirecting = true;
+        window.location.assign(destination);
+        return true;
+    },
+
+    getDisplayName(user) {
+        if (!user) {
+            return '';
+        }
+
+        const fromMetadata = user.user_metadata && user.user_metadata.full_name;
+        if (fromMetadata) {
+            return fromMetadata;
+        }
+
+        const fromEmail = user.email || '';
+        if (!fromEmail.includes('@')) {
+            return fromEmail;
+        }
+
+        return fromEmail.split('@')[0];
+    },
     
     showAuthView() {
         this.elements.authView.classList.remove('hidden');
@@ -66,7 +113,7 @@ const App = {
     
     showAppView() {
         const user = Auth.getUser();
-        this.elements.userName.textContent = user.user_metadata.full_name || 'User';
+        this.elements.userName.textContent = this.getDisplayName(user) || 'User';
         this.elements.userEmail.textContent = user.email;
         
         this.elements.authView.classList.add('hidden');
