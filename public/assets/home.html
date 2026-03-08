@@ -12,6 +12,7 @@
   <title>BrightBridge - Dashboard</title>
   
   <link rel="stylesheet" href="styles.css">
+  <script src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
 </head>
 <body class="full-height">
   
@@ -22,6 +23,9 @@
         <p class="text-white" style="opacity: 0.9; font-size: var(--font-size-xs);">
           Welcome back, <span id="headerUserName">User</span>
         </p>
+        <button type="button" class="logout-btn" onclick="handleLogout()" aria-label="Log out">
+          Log Out
+        </button>
       </div>
     </div>
   </header>
@@ -161,6 +165,18 @@
         setTimeout(() => notification.remove(), 300);
       }, 2000);
     }
+
+    function handleLogout() {
+      const redirectToLogin = () => {
+        window.location.assign('/test/login.html');
+      };
+
+      if (window.netlifyIdentity) {
+        window.netlifyIdentity.logout();
+      }
+
+      redirectToLogin();
+    }
   </script>
   
   <style>
@@ -178,6 +194,29 @@
     .header-content h1 {
       font-size: var(--font-size-lg);
       margin-bottom: var(--spacing-xs);
+    }
+
+    .header-content {
+      position: relative;
+    }
+
+    .logout-btn {
+      position: absolute;
+      top: 0;
+      right: 0;
+      border: 1px solid rgba(255, 255, 255, 0.75);
+      background: rgba(255, 255, 255, 0.16);
+      color: var(--white);
+      border-radius: var(--radius-sm);
+      padding: 6px 10px;
+      font-size: var(--font-size-xs);
+      cursor: pointer;
+      transition: background-color var(--transition-fast), transform var(--transition-fast);
+    }
+
+    .logout-btn:hover {
+      background: rgba(255, 255, 255, 0.28);
+      transform: translateY(-1px);
     }
     
     .daily-checkin-card {

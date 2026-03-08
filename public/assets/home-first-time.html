@@ -13,11 +13,16 @@
   <title>BrightBridge - Home</title>
   
   <link rel="stylesheet" href="styles.css">
+  <script src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
 </head>
 <body class="full-height">
   
   <header class="gradient-header">
-    <div class="header-content"></div>
+    <div class="header-content">
+      <button type="button" class="logout-btn" onclick="handleLogout()" aria-label="Log out">
+        Log Out
+      </button>
+    </div>
   </header>
   
   <main class="container" style="flex: 1; padding-top: var(--spacing-lg);">
@@ -147,6 +152,18 @@
       
       window.location.href = 'home.html';
     }
+
+    function handleLogout() {
+      const redirectToLogin = () => {
+        window.location.assign('/test/login.html');
+      };
+
+      if (window.netlifyIdentity) {
+        window.netlifyIdentity.logout();
+      }
+
+      redirectToLogin();
+    }
   </script>
   
   <style>
@@ -159,6 +176,30 @@
     .gradient-header {
       min-height: 80px;
       border-radius: 0 0 var(--radius-lg) var(--radius-lg);
+    }
+
+    .header-content {
+      position: relative;
+      min-height: 80px;
+    }
+
+    .logout-btn {
+      position: absolute;
+      top: 16px;
+      right: 16px;
+      border: 1px solid rgba(255, 255, 255, 0.75);
+      background: rgba(255, 255, 255, 0.16);
+      color: var(--white);
+      border-radius: var(--radius-sm);
+      padding: 6px 10px;
+      font-size: var(--font-size-xs);
+      cursor: pointer;
+      transition: background-color var(--transition-fast), transform var(--transition-fast);
+    }
+
+    .logout-btn:hover {
+      background: rgba(255, 255, 255, 0.28);
+      transform: translateY(-1px);
     }
     
     .welcome-section h1 {
@@ -208,6 +249,15 @@
         width: 56px;
         height: 56px;
         font-size: 28px;
+      }
+
+      .header-content {
+        min-height: 72px;
+      }
+
+      .logout-btn {
+        top: 12px;
+        right: 12px;
       }
     }
     
