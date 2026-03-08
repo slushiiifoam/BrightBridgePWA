@@ -53,6 +53,7 @@ const App = {
 
         if (user) {
             Auth.user = user;
+            this.syncStoredUsername(user);
 
             if (this.handlePostLoginRedirect(user)) {
                 return;
@@ -71,10 +72,7 @@ const App = {
             return false;
         }
 
-        const displayName = this.getDisplayName(user);
-        if (displayName && !localStorage.getItem('brightbridge_username')) {
-            localStorage.setItem('brightbridge_username', displayName);
-        }
+        this.syncStoredUsername(user);
 
         const isReturningUser = localStorage.getItem('brightbridge_returning_user') === 'true';
         const destination = isReturningUser ? '/assets/home.html' : '/assets/home-first-time.html';
@@ -93,17 +91,32 @@ const App = {
             return '';
         }
 
-        const fromMetadata = user.user_metadata && user.user_metadata.full_name;
-        if (fromMetadata) {
-            return fromMetadata;
+        const metadata = user.user_metadata || {};
+        const metadataName = metadata.full_name || metadata.name || metadata.fullName || '';
+        if (metadataName) {
+            return metadataName;
         }
 
-        const fromEmail = user.email || '';
+        const fromEmail = user.email || user.profile && user.profile.email || '';
         if (!fromEmail.includes('@')) {
             return fromEmail;
         }
 
         return fromEmail.split('@')[0];
+    },
+
+    syncStoredUsername(user) {
+        const displayName = this.getDisplayName(user).trim();
+        if (!displayName) {
+            return;
+        }
+
+        const existingName = (localStorage.getItem('brightbridge_username') || '').trim();
+        const existingIsPlaceholder = !existingName || existingName.toLowerCase() === 'user';
+
+        if (existingIsPlaceholder || existingName !== displayName) {
+            localStorage.setItem('brightbridge_username', displayName);
+        }
     },
     
     showAuthView() {
