@@ -26,14 +26,14 @@ const App = {
     },
     
     setupEventListeners() {
-        this.elements.loginBtn.addEventListener('click', async () => {
+        this.elements.loginBtn.addEventListener('click', async (e) => {
+            e.preventDefault();
             await Auth.login();
-            this.updateAuthUI();
         });
         
-        this.elements.logoutBtn.addEventListener('click', async () => {
+        this.elements.logoutBtn.addEventListener('click', async (e) => {
+            e.preventDefault();
             await Auth.logout();
-            this.updateAuthUI();
         });
         
         this.elements.saveBtn.addEventListener('click', () => {
@@ -52,10 +52,14 @@ const App = {
 
         if (user) {
             Auth.user = user;
-            this.showAppView();
+            setTimeout(() => {
+                window.location.href = './home.html';
+            }, 300);
             this.loadUserData();
         } else {
-            this.showAuthView();
+            setTimeout(() => {
+                window.location.href = './login.html';
+            }, 300);
         }
 },
     

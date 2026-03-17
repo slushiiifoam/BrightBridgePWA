@@ -35,7 +35,7 @@ const Auth = {
     },
     
     login() {
-        netlifyIdentity.open();
+         netlifyIdentity.open();
     },
     
     logout() {
