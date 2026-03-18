@@ -59,27 +59,6 @@
   </a>
   
   <script>
-    function handleLogin(event) {
-      event.preventDefault();
-      
-      const username = document.getElementById('username').value;
-      const password = document.getElementById('password').value;
-      
-      if (username && password) {
-        localStorage.setItem('brightbridge_username', username);
-        
-        const isFirstTime = !localStorage.getItem('brightbridge_returning_user');
-        
-        if (isFirstTime) {
-          localStorage.setItem('brightbridge_returning_user', 'true');
-          
-          window.location.href = 'home-first-time.html';
-        } else {
-          window.location.href = 'home.html';
-        }
-      }
-    }
-    
     window.addEventListener('load', () => {
       document.body.style.opacity = '1';
     });

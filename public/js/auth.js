@@ -3,8 +3,10 @@ const Auth = {
     user: null,
     
     init() {
-        // Initialize Netlify Identity
-        netlifyIdentity.init();
+
+        if (window.location.hash.includes('access_token')) {
+            window.history.replaceState("", document.title, window.location.pathname);
+        }
         
         // Check for existing user
         this.user = netlifyIdentity.currentUser();
@@ -12,7 +14,6 @@ const Auth = {
         // Set up event listeners
         netlifyIdentity.on('login', user => {
             this.user = user;
-            this.onAuthChange();
             netlifyIdentity.close();
         });
         
@@ -32,6 +33,9 @@ const Auth = {
                 this.onAuthChange();
             }
         });
+
+        // Initialize Netlify Identity
+        netlifyIdentity.init();
     },
     
     login() {

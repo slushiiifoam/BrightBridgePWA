@@ -6,7 +6,9 @@ const App = {
         Auth.init()
 
         // Cache DOM elements
-        this.elements = {
+
+        try{
+            this.elements = {
             authView: document.getElementById('auth-view'),
             appView: document.getElementById('app-view'),
             loginBtn: document.getElementById('login-btn'),
@@ -17,6 +19,9 @@ const App = {
             saveBtn: document.getElementById('save-btn'),
             dataList: document.getElementById('data-list')
         };
+        }catch(e){
+            alert('error: '+e)
+        }
         
         // Set up event listeners
         this.setupEventListeners();
@@ -53,12 +58,11 @@ const App = {
         if (user) {
             Auth.user = user;
             setTimeout(() => {
-                window.location.href = './home.html';
+                window.location.replace('/test/home.html');
             }, 300);
-            this.loadUserData();
         } else {
             setTimeout(() => {
-                window.location.href = './login.html';
+                window.location.replace('/test/login.html');
             }, 300);
         }
 },
