@@ -14,7 +14,7 @@ const Auth = {
         // Set up event listeners
         netlifyIdentity.on('login', user => {
             this.user = user;
-            netlifyIdentity.close();
+            this.onAuthChange();
         });
         
         netlifyIdentity.on('logout', () => {
