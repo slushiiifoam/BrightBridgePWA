@@ -24,7 +24,7 @@ const Auth = {
         
         netlifyIdentity.on('error', err => {
             const message = err && err.message ? err.message : '';
-            if (message.includes('Failed to load settings from /.netlify/identity') || message.includes('Load failed')) {
+            if (message.includes('Failed to load settings from') || message.includes('Load failed')) {
                 console.warn('Identity settings endpoint unavailable:', message);
                 return;
             }

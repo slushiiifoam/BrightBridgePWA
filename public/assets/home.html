@@ -202,11 +202,29 @@
         window.location.assign('/test/login.html');
       };
 
-      if (window.netlifyIdentity) {
-        window.netlifyIdentity.logout();
+      if (!window.netlifyIdentity) {
+        redirectToLogin();
+        return;
       }
 
-      redirectToLogin();
+      let redirected = false;
+      const safeRedirect = () => {
+        if (redirected) {
+          return;
+        }
+
+        redirected = true;
+        redirectToLogin();
+      };
+
+      window.netlifyIdentity.on('logout', safeRedirect);
+
+      const result = window.netlifyIdentity.logout();
+      if (result && typeof result.then === 'function') {
+        result.then(safeRedirect).catch(safeRedirect);
+      }
+
+      setTimeout(safeRedirect, 1500);
     }
   </script>
   
