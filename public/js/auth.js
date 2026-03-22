@@ -7,6 +7,7 @@ const Auth = {
         // Handle redirect after email confirmation
         netlifyIdentity.on('init', user => {
             this.user = user;
+            this.onAuthChange();
         });
         
         // Set up event listeners

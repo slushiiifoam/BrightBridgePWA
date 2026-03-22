@@ -25,9 +25,6 @@ const App = {
         
         // Set up event listeners
         this.setupEventListeners();
-        
-        // Update UI based on auth state
-        this.updateAuthUI();
     },
     
     setupEventListeners() {
