@@ -3,7 +3,6 @@
 (function (global) {
   const STORAGE_KEY = 'brightbridge_username';
   const PLACEHOLDER = 'user';
-  const DEBUG_FLAG_KEY = 'brightbridge_identity_debug_logged';
 
   function normalizeDisplayName(value) {
     if (!value || typeof value !== 'string') {
@@ -74,25 +73,6 @@
   function syncStoredDisplayName(user) {
     const resolved = resolveDisplayName(user);
     if (!resolved) {
-      // Temporary diagnostic: log available identity fields once per tab session.
-      if (user && !sessionStorage.getItem(DEBUG_FLAG_KEY)) {
-        const identities = Array.isArray(user.identities) ? user.identities : [];
-        console.warn('[BrightBridge Identity Debug] Unable to resolve display name. Available fields:', {
-          userId: user.id || '',
-          email: user.email || '',
-          userMetadata: user.user_metadata || {},
-          tokenMetadata: (user.token && user.token.user_metadata) || {},
-          tokenEmail: (user.token && user.token.email) || '',
-          profile: user.profile || {},
-          identities: identities.map(identity => ({
-            provider: identity && identity.provider,
-            identityData: (identity && identity.identity_data) || {}
-          }))
-        });
-
-        sessionStorage.setItem(DEBUG_FLAG_KEY, '1');
-      }
-
       return '';
     }
 

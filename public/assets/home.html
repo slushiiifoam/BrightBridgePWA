@@ -126,7 +126,8 @@
       setHeaderName(cachedName);
 
       if (window.netlifyIdentity) {
-        window.netlifyIdentity.init();
+        const apiUrl = `${window.location.origin}/.netlify/identity`;
+        window.netlifyIdentity.init({ APIUrl: apiUrl });
 
         const syncFromUser = (user) => {
           // Keep name behavior aligned with login and first-time pages.

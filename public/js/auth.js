@@ -3,8 +3,9 @@ const Auth = {
     user: null,
     
     init() {
-        // Initialize Netlify Identity
-        netlifyIdentity.init();
+        // Safari can be strict with relative endpoint resolution for identity settings.
+        const apiUrl = `${window.location.origin}/.netlify/identity`;
+        netlifyIdentity.init({ APIUrl: apiUrl });
         
         // Check for existing user
         this.user = netlifyIdentity.currentUser();
@@ -22,6 +23,12 @@ const Auth = {
         });
         
         netlifyIdentity.on('error', err => {
+            const message = err && err.message ? err.message : '';
+            if (message.includes('Failed to load settings from /.netlify/identity') || message.includes('Load failed')) {
+                console.warn('Identity settings endpoint unavailable:', message);
+                return;
+            }
+
             console.error('Identity error:', err);
         });
         

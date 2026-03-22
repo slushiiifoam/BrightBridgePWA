@@ -54,6 +54,10 @@
     quick exit
   </a>
 
+  <a href="help.html" class="help-fab pulse" aria-label="Get help now">
+    <span style="font-weight: 700; font-size: 18px;">HELP</span>
+  </a>
+
   <script src="../js/identity-display.js"></script>
   <script src="../js/journal-store.js"></script>
   <script>
@@ -61,7 +65,8 @@
 
     window.addEventListener('load', () => {
       if (window.netlifyIdentity) {
-        window.netlifyIdentity.init();
+        const apiUrl = `${window.location.origin}/.netlify/identity`;
+        window.netlifyIdentity.init({ APIUrl: apiUrl });
 
         const syncFromUser = (user) => {
           if (window.IdentityDisplayName && typeof window.IdentityDisplayName.syncStoredDisplayName === 'function') {
@@ -171,6 +176,14 @@
 
     .header-content {
       position: relative;
+      min-height: 52px;
+    }
+
+    .header-content h1 {
+      margin: 0;
+      text-align: center;
+      padding: 0 96px;
+      font-size: var(--font-size-lg);
     }
 
     .back-button {
@@ -195,8 +208,9 @@
 
     .logout-btn {
       position: absolute;
-      top: 0;
+      top: 50%;
       right: 0;
+      transform: translateY(-50%);
       border: 1px solid rgba(255, 255, 255, 0.75);
       background: rgba(255, 255, 255, 0.16);
       color: var(--white);
@@ -209,7 +223,7 @@
 
     .logout-btn:hover {
       background: rgba(255, 255, 255, 0.28);
-      transform: translateY(-1px);
+      transform: translateY(calc(-50% - 1px));
     }
 
     .history-shell {
@@ -315,6 +329,17 @@
     }
 
     @media (max-width: 480px) {
+      .header-content h1 {
+        font-size: var(--font-size-md);
+        padding: 0 82px;
+      }
+
+      .back-button,
+      .logout-btn {
+        padding: 6px 8px;
+        font-size: var(--font-size-xs);
+      }
+
       .entry-top-row {
         flex-direction: column;
         align-items: flex-start;

@@ -107,7 +107,8 @@
       setWelcomeName(cachedName);
 
       if (window.netlifyIdentity) {
-        window.netlifyIdentity.init();
+        const apiUrl = `${window.location.origin}/.netlify/identity`;
+        window.netlifyIdentity.init({ APIUrl: apiUrl });
 
         const syncFromUser = (user) => {
           // Use shared resolver so this page matches login/dashboard fallback behavior.
