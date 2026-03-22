@@ -35,8 +35,8 @@ const App = {
     },
     
     updateAuthUI() {
-        const savedUser = localStorage.getItem('brightbridge.user');
-        const user = JSON.parse(savedUser);
+        var savedUser = localStorage.getItem('brightbridge.user');
+        var user = JSON.parse(savedUser);
 
         try {
             user = savedUser ? JSON.parse(savedUser) : null;
@@ -50,7 +50,7 @@ const App = {
 
             if(!window.location.pathname.includes('login.html'))
                 window.location.assign('/test/login.html');
-            
+
             return; // Stay here, do nothing else.
         }
 
