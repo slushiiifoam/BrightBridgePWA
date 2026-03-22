@@ -53,18 +53,23 @@ const App = {
     },
     
     updateAuthUI() {
-        const user = netlifyIdentity.currentUser();
-        const isDashboard = window.location.pathname.includes('login');
+        const user = Auth.getUser();
+        const onLoginPage = window.location.pathname.includes('login.html');
 
-        if (user) {
-            Auth.user = user;
-            setTimeout(() => {
-                window.location.assign('/test/home.html');
-            }, 300);
-        } else {
-            setTimeout(() => {
+        // IF THE USER IS NULL:
+        if (!user) {
+            // Only redirect if we are NOT already on the login page
+            if (!onLoginPage) {
                 window.location.assign('/test/login.html');
-            }, 300);
+            }
+            return; // Stay here, do nothing else.
+        }
+
+        // IF THE USER EXISTS:
+        if (onLoginPage) {
+            window.location.assign('/test/home.html');
+        } else {
+            this.showAppView();
         }
 },
     
