@@ -19,10 +19,10 @@
   <header class="app-header gradient-header">
     <div class="container">
       <div class="header-content">
+        <button class="back-button" onclick="goBack()" aria-label="Go back">
+          ← Back
+        </button>
         <h1 class="text-white">Daily Check-In</h1>
-        <p class="text-white" style="opacity: 0.9; font-size: var(--font-size-xs);">
-          Hi <span id="headerUserName">User</span>
-        </p>
         <button type="button" class="logout-btn" onclick="handleLogout()" aria-label="Log out">
           Log Out
         </button>
@@ -41,13 +41,9 @@
       <a href="home-first-time.html" class="btn btn-primary btn-large" style="width: 100%; margin-bottom: var(--spacing-sm);">
         Open Daily Entry Form
       </a>
-
-      <button type="button" class="btn btn-light btn-large" style="width: 100%;" onclick="toggleHistory()">
-        Show Last 10 Journal Entries
-      </button>
     </section>
 
-    <section id="historyCard" class="card hidden" aria-live="polite">
+    <section id="historyCard" class="card" aria-live="polite">
       <h2 style="font-size: var(--font-size-md); margin-bottom: var(--spacing-sm);">Last 10 Journal Entries</h2>
       <div id="historyList"></div>
     </section>
@@ -64,27 +60,17 @@
     let currentUserKey = 'anonymous';
 
     window.addEventListener('load', () => {
-      const cachedName = (window.IdentityDisplayName
-        && typeof window.IdentityDisplayName.readStoredDisplayName === 'function')
-        ? window.IdentityDisplayName.readStoredDisplayName()
-        : '';
-      setHeaderName(cachedName);
-
       if (window.netlifyIdentity) {
         window.netlifyIdentity.init();
 
         const syncFromUser = (user) => {
-          const resolvedName = (window.IdentityDisplayName
-            && typeof window.IdentityDisplayName.syncStoredDisplayName === 'function')
-            ? window.IdentityDisplayName.syncStoredDisplayName(user)
-            : '';
-
-          if (resolvedName) {
-            setHeaderName(resolvedName);
+          if (window.IdentityDisplayName && typeof window.IdentityDisplayName.syncStoredDisplayName === 'function') {
+            window.IdentityDisplayName.syncStoredDisplayName(user);
           }
 
           if (window.JournalStore && typeof window.JournalStore.resolveUserKey === 'function') {
             currentUserKey = window.JournalStore.resolveUserKey(user);
+            renderHistory();
           }
         };
 
@@ -94,21 +80,11 @@
       }
 
       document.body.style.opacity = '1';
+      renderHistory();
     });
 
-    function setHeaderName(name) {
-      document.getElementById('headerUserName').textContent = (name || 'User').trim() || 'User';
-    }
-
-    function toggleHistory() {
-      const card = document.getElementById('historyCard');
-      const isHidden = card.classList.contains('hidden');
-
-      if (isHidden) {
-        renderHistory();
-      }
-
-      card.classList.toggle('hidden');
+    function goBack() {
+      window.history.back();
     }
 
     function renderHistory() {
@@ -168,6 +144,26 @@
 
     .header-content {
       position: relative;
+    }
+
+    .back-button {
+      background: rgba(255, 255, 255, 0.2);
+      border: none;
+      color: var(--white);
+      font-size: var(--font-size-sm);
+      padding: var(--spacing-xs) var(--spacing-sm);
+      cursor: pointer;
+      position: absolute;
+      left: 0;
+      top: 50%;
+      transform: translateY(-50%);
+      border-radius: var(--radius-sm);
+      font-weight: 600;
+      transition: all var(--transition-fast);
+    }
+
+    .back-button:hover {
+      background: rgba(255, 255, 255, 0.3);
     }
 
     .logout-btn {

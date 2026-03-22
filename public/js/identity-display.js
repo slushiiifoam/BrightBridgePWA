@@ -37,20 +37,25 @@
 
     const metadata = user.user_metadata || {};
     const profile = user.profile || {};
+    const token = user.token || {};
+    const tokenUserMetadata = token.user_metadata || {};
     const identities = Array.isArray(user.identities) ? user.identities : [];
     const identityCandidates = identities.flatMap(identity => {
       const data = identity && identity.identity_data ? identity.identity_data : {};
       return [data.full_name, data.name, data.email];
     });
 
-    // Candidate order intentionally prefers explicit profile names before email fallback.
+    // Candidate order prefers explicit profile names before email fallback.
     const candidates = [
       metadata.full_name,
       metadata.name,
       metadata.fullName,
+      tokenUserMetadata.full_name,
+      tokenUserMetadata.name,
       profile.full_name,
       profile.name,
       user.email,
+      token.email,
       profile.email,
       ...identityCandidates
     ];
