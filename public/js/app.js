@@ -31,14 +31,12 @@ const App = {
     },
     
     setupEventListeners() {
-        this.elements.loginBtn.addEventListener('click', async (e) => {
-            e.preventDefault();
-            await Auth.login();
+        this.elements.loginBtn.addEventListener('click', () => {
+            Auth.login();
         });
         
-        this.elements.logoutBtn.addEventListener('click', async (e) => {
-            e.preventDefault();
-            await Auth.logout();
+        this.elements.logoutBtn.addEventListener('click', () => {
+            Auth.logout();
         });
         
         this.elements.saveBtn.addEventListener('click', () => {
@@ -58,11 +56,11 @@ const App = {
         if (user) {
             Auth.user = user;
             setTimeout(() => {
-                window.location.replace('/test/home.html');
+                window.location.assign('/test/home.html');
             }, 300);
         } else {
             setTimeout(() => {
-                window.location.replace('/test/login.html');
+                window.location.assign('/test/login.html');
             }, 300);
         }
 },
