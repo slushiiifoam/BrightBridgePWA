@@ -64,7 +64,7 @@ const App = {
             setTimeout(() => {
                 window.location.assign('/test/home.html');
             }, 300);
-        } else {
+        } else if (!isDashboard){
             setTimeout(() => {
                 window.location.assign('/test/login.html');
             }, 300);
