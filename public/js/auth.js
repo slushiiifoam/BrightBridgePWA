@@ -30,7 +30,9 @@ const Auth = {
         netlifyIdentity.on('init', user => {
             if (user) {
                 this.user = user;
-                this.onAuthChange();
+
+                if(!localStorage.getItem('brightbridge_returning_user'))
+                    this.onAuthChange();
             }
         });
 
