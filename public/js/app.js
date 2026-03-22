@@ -41,11 +41,17 @@ const App = {
         // IF THE USER IS NULL:
         if (!user) {
             // Only redirect if we are NOT already on the login page
-
-            window.location.assign('/test/login.html');
+            if (!onLoginPage) {
+                window.location.assign('/test/login.html');
+            }
             return; // Stay here, do nothing else.
-        }else {
+        }
+
+        // IF THE USER EXISTS:
+        if (onLoginPage) {
             window.location.assign('/test/home.html');
+        } else {
+            
         }
 }
 };

@@ -4,6 +4,16 @@ const Auth = {
     
     init() {
 
+        const savedUser = localStorage.getItem('brightbridge.user'); 
+        if (savedUser) {
+            try {
+                this.user = JSON.parse(savedUser);
+            } catch (e) {
+                this.user = null;
+                localStorage.removeItem('brightbridge.user');
+            }
+        }
+
         // Handle redirect after email confirmation
         netlifyIdentity.on('init', user => {
             this.user = user;
@@ -13,11 +23,14 @@ const Auth = {
         // Set up event listeners
         netlifyIdentity.on('login', user => {
             this.user = user;
+
+            if (user) localStorage.setItem('brightbridge.user', JSON.stringify(user));;
             this.onAuthChange();
         });
         
         netlifyIdentity.on('logout', () => {
             this.user = null;
+            localStorage.removeItem('brightbridge.user'); // Clean up the local storage token
             this.onAuthChange();
         });
         
