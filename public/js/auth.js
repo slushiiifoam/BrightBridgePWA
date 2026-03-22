@@ -4,9 +4,6 @@ const Auth = {
     
     init() {
         
-        // Check for existing user
-        this.user = netlifyIdentity.currentUser();
-        
         // Set up event listeners
         netlifyIdentity.on('login', user => {
             this.user = user;
@@ -20,6 +17,16 @@ const Auth = {
         
         netlifyIdentity.on('error', err => {
             console.error('Identity error:', err);
+        });
+        
+        // Handle redirect after email confirmation
+        netlifyIdentity.on('init', user => {
+            if (user) {
+                this.user = user;
+
+                if(!localStorage.getItem('brightbridge_returning_user'))
+                    this.onAuthChange();
+            }
         });
 
         // Initialize Netlify Identity
