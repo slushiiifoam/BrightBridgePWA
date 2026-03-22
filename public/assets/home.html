@@ -13,6 +13,8 @@
   
   <link rel="stylesheet" href="styles.css">
   <script src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
+  <script src="/js/supabase-config.js"></script>
+  <script src="/js/auth.js"></script>
 </head>
 <body class="full-height">
   
@@ -115,6 +117,11 @@
   
   <script>
     window.addEventListener('load', () => {
+      // Initialize Auth module
+      if (window.Auth && typeof window.Auth.init === 'function') {
+        window.Auth.init();
+      }
+
       const cachedName = localStorage.getItem('brightbridge_username') || 'User';
       setHeaderName(cachedName);
 
@@ -177,36 +184,80 @@
       return '';
     }
     
-    function quickMoodCheck(mood) {
-      const moodEntry = {
-        mood: mood,
-        timestamp: new Date().toISOString(),
-        date: new Date().toLocaleDateString()
-      };
-      
-      let moodHistory = JSON.parse(localStorage.getItem('brightbridge_mood_history') || '[]');
-      moodHistory.push(moodEntry);
-      localStorage.setItem('brightbridge_mood_history', JSON.stringify(moodHistory));
-      
-      const selectedBtn = event.target.closest('.mood-btn');
-      selectedBtn.style.transform = 'scale(1.2)';
-      setTimeout(() => {
-        selectedBtn.style.transform = '';
-      }, 200);
-      
-      showNotification('Mood logged! Thank you for checking in.');
+    async function quickMoodCheck(mood) {
+      console.log('quickMoodCheck called with:', mood);
+      try {
+        // Direct Supabase API call
+        const SUPABASE_URL = 'https://pyqznelkiujkmviedlha.supabase.co/';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB5cXpuZWxraXVqa212aWVkbGhhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI1NTU1NTYsImV4cCI6MjA4ODEzMTU1Nn0.An4UgrP5HczCd0OR2_dSzGdFshC_bPTmbiae4oLBh9s';
+        
+        // Get user ID
+        const userId = window.netlifyIdentity && window.netlifyIdentity.currentUser() 
+          ? window.netlifyIdentity.currentUser().id || window.netlifyIdentity.currentUser().sub
+          : 'test-user';
+        
+        console.log('Saving mood to Supabase:', mood, 'for user:', userId);
+        
+        const response = await fetch(`${SUPABASE_URL}rest/v1/moods`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+            'apikey': SUPABASE_ANON_KEY
+          },
+          body: JSON.stringify({
+            mood: mood,
+            timestamp: new Date().toISOString(),
+            date: new Date().toLocaleDateString(),
+            user_id: userId
+          })
+        });
+        
+        if (!response.ok) {
+          const error = await response.text();
+          console.error('Supabase error:', response.status, error);
+          throw new Error(`Failed to save mood: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        console.log('Mood saved successfully:', data);
+
+        // Also keep localStorage for offline functionality
+        const moodEntry = {
+          mood: mood,
+          timestamp: new Date().toISOString(),
+          date: new Date().toLocaleDateString()
+        };
+
+        let moodHistory = JSON.parse(localStorage.getItem('brightbridge_mood_history') || '[]');
+        moodHistory.push(moodEntry);
+        localStorage.setItem('brightbridge_mood_history', JSON.stringify(moodHistory));
+
+        // Visual feedback
+        const selectedBtn = event.target.closest('.mood-btn');
+        selectedBtn.style.transform = 'scale(1.2)';
+        setTimeout(() => {
+          selectedBtn.style.transform = '';
+        }, 200);
+
+        showNotification('Mood logged! Thank you for checking in.');
+      } catch (error) {
+        console.error('Failed to log mood:', error);
+        showNotification('Failed to log mood. Please try again.', 'error');
+      }
     }
     
-    function showNotification(message) {
+    function showNotification(message, type = 'success') {
       const notification = document.createElement('div');
       notification.className = 'notification';
       notification.textContent = message;
+      const bgColor = type === 'error' ? 'var(--mood-sad)' : 'var(--mood-happy)';
       notification.style.cssText = `
         position: fixed;
         top: 20px;
         left: 50%;
         transform: translateX(-50%);
-        background: var(--mood-happy);
+        background: ${bgColor};
         color: white;
         padding: var(--spacing-sm) var(--spacing-md);
         border-radius: var(--radius-md);
@@ -347,6 +398,72 @@
       }
     }
   </style>
+  
+  <script>
+    console.log('Script is running at end of body...');
+    
+    // Direct REST API approach - no external library needed
+    const SUPABASE_URL = 'https://pyqznelkiujkmviedlha.supabase.co/';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB5cXpuZWxraXVqa212aWVkbGhhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI1NTU1NTYsImV4cCI6MjA4ODEzMTU1Nn0.An4UgrP5HczCd0OR2_dSzGdFshC_bPTmbiae4oLBh9s';
+    
+    console.log('Using direct REST API approach');
+    
+    // Mood tracking functions using direct fetch
+    const MoodTracker = {
+        async saveMood(mood) {
+            console.log('saveMood called with:', mood);
+            try {
+                const userId = this.getCurrentUserId();
+                console.log('User ID:', userId);
+                if (!userId) {
+                    throw new Error('User not authenticated');
+                }
+
+                const response = await fetch(`${SUPABASE_URL}rest/v1/moods`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+                        'apikey': SUPABASE_ANON_KEY
+                    },
+                    body: JSON.stringify({
+                        mood: mood,
+                        timestamp: new Date().toISOString(),
+                        date: new Date().toLocaleDateString(),
+                        user_id: userId
+                    })
+                });
+
+                console.log('Fetch response status:', response.status);
+                
+                if (!response.ok) {
+                    const error = await response.text();
+                    console.error('HTTP Error:', response.status, error);
+                    throw new Error(`HTTP ${response.status}: ${error}`);
+                }
+
+                const data = await response.json();
+                console.log('Mood saved successfully:', data);
+                return data;
+            } catch (error) {
+                console.error('Failed to save mood:', error);
+                throw error;
+            }
+        },
+
+        getCurrentUserId() {
+            // Check netlifyIdentity directly (used in home.html)
+            if (window.netlifyIdentity && window.netlifyIdentity.currentUser()) {
+                return window.netlifyIdentity.currentUser().id || window.netlifyIdentity.currentUser().sub;
+            }
+            return 'test-user';
+        }
+    };
+
+    // Expose globally
+    window.MoodTracker = MoodTracker;
+    console.log('MoodTracker initialized with REST API');
+  </script>
   
 </body>
 </html>

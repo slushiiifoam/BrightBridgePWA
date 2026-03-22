@@ -69,36 +69,64 @@
     quick exit
   </a>
   
-  <script>
-    function handleLogin(event) {
-      event.preventDefault();
-      
-      const username = document.getElementById('username').value;
-      const password = document.getElementById('password').value;
-      
-      if (username && password) {
-        localStorage.setItem('brightbridge_username', username);
-        
-        const isFirstTime = !localStorage.getItem('brightbridge_returning_user');
-        
-        if (isFirstTime) {
-          localStorage.setItem('brightbridge_returning_user', 'true');
-          
-          window.location.href = 'home-first-time.html';
-        } else {
-          window.location.href = 'home.html';
-        }
-      }
-    }
-    
-    window.addEventListener('load', () => {
-      document.body.style.opacity = '1';
-    });
-  </script>
-
   <script src="./js/auth.js"></script>
   <script src="./js/data.js"></script>
   <script src="./js/app.js"></script>
+  
+  <script>
+    function redirectAfterLogin() {
+      const isFirstTime = !localStorage.getItem('brightbridge_returning_user');
+
+      if (isFirstTime) {
+        localStorage.setItem('brightbridge_returning_user', 'true');
+        window.location.href = 'home-first-time.html';
+      } else {
+        window.location.href = 'home.html';
+      }
+    }
+
+    function handleLogin(event) {
+      event.preventDefault();
+      console.log('Login attempt...');
+
+      if (!window.netlifyIdentity) {
+        console.log('Netlify Identity not available, trying local mode...');
+      }
+
+      const username = document.getElementById('username').value.trim();
+      if (username) {
+        localStorage.setItem('brightbridge_username', username);
+        console.log('Username saved:', username);
+      }
+
+      console.log('Calling Auth.login()...');
+      Auth.login();
+
+      // If running locally (no Netlify Identity), Auth.login() will immediately log in and we can redirect.
+      if (Auth.isLocalMode() && Auth.isLoggedIn()) {
+        console.log('Local mode login successful, redirecting...');
+        redirectAfterLogin();
+      } else {
+        console.log('Auth state - Local mode:', Auth.isLocalMode(), 'Logged in:', Auth.isLoggedIn());
+      }
+    }
+
+    // When using Netlify Identity, redirect after successful login
+    if (window.netlifyIdentity) {
+      console.log('Setting up Netlify Identity listeners...');
+      window.netlifyIdentity.on('login', () => {
+        console.log('Netlify Identity login event fired');
+        redirectAfterLogin();
+      });
+    } else {
+      console.log('Netlify Identity not available');
+    }
+
+    window.addEventListener('load', () => {
+      console.log('Page loaded, Auth available:', typeof window.Auth !== 'undefined');
+      document.body.style.opacity = '1';
+    });
+  </script>
   
 </body>
 </html>
