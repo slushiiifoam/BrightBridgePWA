@@ -31,23 +31,28 @@ const App = {
     },
     
     setupEventListeners() {
-        this.elements.loginBtn.addEventListener('click', () => {
-            Auth.login();
-        });
+
+        if(this.elements.loginBtn)
+            this.elements.loginBtn.addEventListener('click', () => {
+                Auth.login();
+            });
         
-        this.elements.logoutBtn.addEventListener('click', () => {
-            Auth.logout();
-        });
+        if(this.elements.logoutBtn)
+            this.elements.logoutBtn.addEventListener('click', () => {
+                Auth.logout();
+            });
         
-        this.elements.saveBtn.addEventListener('click', () => {
-            this.handleSaveData();
-        });
-        
-        this.elements.dataInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') {
+        if(this.elements.saveBtn)
+            this.elements.saveBtn.addEventListener('click', () => {
                 this.handleSaveData();
-            }
-        });
+            });
+        
+        if(this.elements.dataInput)
+            this.elements.dataInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    this.handleSaveData();
+                }
+            });
     },
     
     updateAuthUI() {
