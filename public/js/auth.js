@@ -2,17 +2,7 @@
 const Auth = {
     user: null,
     
-    init() {
-
-        const savedUser = localStorage.getItem('brightbridge.user'); 
-        if (savedUser) {
-            try {
-                this.user = JSON.parse(savedUser);
-            } catch (e) {
-                this.user = null;
-                localStorage.removeItem('brightbridge.user');
-            }
-        }
+    init() { 
 
         // Handle redirect after email confirmation
         netlifyIdentity.on('init', user => {
@@ -24,7 +14,7 @@ const Auth = {
         netlifyIdentity.on('login', user => {
             this.user = user;
 
-            if (user) localStorage.setItem('brightbridge.user', JSON.stringify(user));;
+            if (user) localStorage.setItem('brightbridge.user', JSON.stringify(user));
             this.onAuthChange();
         });
         

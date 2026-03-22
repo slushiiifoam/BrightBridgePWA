@@ -35,18 +35,28 @@ const App = {
     },
     
     updateAuthUI() {
-        const user = Auth.getUser();
-        const onLoginPage = window.location.pathname.includes('login.html');
+        const savedUser = localStorage.getItem('brightbridge.user');
+        const user = JSON.parse(savedUser);
+
+        try {
+            user = savedUser ? JSON.parse(savedUser) : null;
+        } catch (e) {
+            user = null; // Guard against malformed JSON
+        }
 
         // IF THE USER IS NULL:
         if (!user) {
             // Only redirect if we are NOT already on the login page{
-            window.location.assign('/test/login.html');
+
+            if(!window.location.pathname.includes('login.html'))
+                window.location.assign('/test/login.html');
+            
             return; // Stay here, do nothing else.
         }
 
         // IF THE USER EXISTS:
-        window.location.assign('/test/home.html');
+        if(window.location.pathname.includes('login.html'))
+            window.location.assign('/test/home.html');
 
 }
 };
