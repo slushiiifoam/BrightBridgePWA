@@ -87,48 +87,20 @@ const App = {
     },
 
     getDisplayName(user) {
-        if (!user) {
-            return '';
-        }
-
-        const metadata = user.user_metadata || {};
-        const identityData = Array.isArray(user.identities) && user.identities.length > 0
-            ? user.identities[0].identity_data || {}
-            : {};
-
-        const candidates = [
-            metadata.full_name,
-            metadata.name,
-            metadata.fullName,
-            identityData.full_name,
-            identityData.name,
-            user.email,
-            identityData.email,
-            user.profile && user.profile.email
-        ];
-
-        for (const candidate of candidates) {
-            if (!candidate || typeof candidate !== 'string') {
-                continue;
-            }
-
-            const cleaned = candidate.trim();
-            if (!cleaned) {
-                continue;
-            }
-
-            if (cleaned.includes('@')) {
-                return cleaned.split('@')[0];
-            }
-
-            return cleaned;
+        if (window.IdentityDisplayName && typeof window.IdentityDisplayName.resolveDisplayName === 'function') {
+            return window.IdentityDisplayName.resolveDisplayName(user);
         }
 
         return '';
     },
 
     syncStoredUsername(user) {
-        const displayName = this.getDisplayName(user).trim();
+        // Keep login and dashboard pages in sync with the same resolved identity name.
+        const displayName = (window.IdentityDisplayName
+            && typeof window.IdentityDisplayName.syncStoredDisplayName === 'function')
+            ? window.IdentityDisplayName.syncStoredDisplayName(user)
+            : this.getDisplayName(user).trim();
+
         if (!displayName) {
             return;
         }

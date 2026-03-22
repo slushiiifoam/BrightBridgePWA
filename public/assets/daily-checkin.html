@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="description" content="BrightBridge - Daily Check-In">
+  <meta name="theme-color" content="#5B4B8A">
+
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
+  <title>BrightBridge - Daily Check-In</title>
+
+  <link rel="stylesheet" href="styles.css">
+  <script src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
+</head>
+<body class="full-height">
+
+  <header class="app-header gradient-header">
+    <div class="container">
+      <div class="header-content">
+        <h1 class="text-white">Daily Check-In</h1>
+        <p class="text-white" style="opacity: 0.9; font-size: var(--font-size-xs);">
+          Hi <span id="headerUserName">User</span>
+        </p>
+        <button type="button" class="logout-btn" onclick="handleLogout()" aria-label="Log out">
+          Log Out
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main class="container" style="flex: 1; padding-top: var(--spacing-lg); padding-bottom: var(--spacing-xl);">
+
+    <section class="card fade-in">
+      <h2 style="font-size: var(--font-size-md); margin-bottom: var(--spacing-sm);">Choose an option</h2>
+      <p style="color: var(--dark-gray); margin-bottom: var(--spacing-md);">
+        Start a new daily entry or review your recent journal history.
+      </p>
+
+      <a href="home-first-time.html" class="btn btn-primary btn-large" style="width: 100%; margin-bottom: var(--spacing-sm);">
+        Open Daily Entry Form
+      </a>
+
+      <button type="button" class="btn btn-light btn-large" style="width: 100%;" onclick="toggleHistory()">
+        Show Last 10 Journal Entries
+      </button>
+    </section>
+
+    <section id="historyCard" class="card hidden" aria-live="polite">
+      <h2 style="font-size: var(--font-size-md); margin-bottom: var(--spacing-sm);">Last 10 Journal Entries</h2>
+      <div id="historyList"></div>
+    </section>
+
+  </main>
+
+  <a href="https://www.weather.com" class="quick-exit" aria-label="Quick exit to weather website">
+    quick exit
+  </a>
+
+  <script src="../js/identity-display.js"></script>
+  <script src="../js/journal-store.js"></script>
+  <script>
+    let currentUserKey = 'anonymous';
+
+    window.addEventListener('load', () => {
+      const cachedName = (window.IdentityDisplayName
+        && typeof window.IdentityDisplayName.readStoredDisplayName === 'function')
+        ? window.IdentityDisplayName.readStoredDisplayName()
+        : '';
+      setHeaderName(cachedName);
+
+      if (window.netlifyIdentity) {
+        window.netlifyIdentity.init();
+
+        const syncFromUser = (user) => {
+          const resolvedName = (window.IdentityDisplayName
+            && typeof window.IdentityDisplayName.syncStoredDisplayName === 'function')
+            ? window.IdentityDisplayName.syncStoredDisplayName(user)
+            : '';
+
+          if (resolvedName) {
+            setHeaderName(resolvedName);
+          }
+
+          if (window.JournalStore && typeof window.JournalStore.resolveUserKey === 'function') {
+            currentUserKey = window.JournalStore.resolveUserKey(user);
+          }
+        };
+
+        syncFromUser(window.netlifyIdentity.currentUser());
+        window.netlifyIdentity.on('init', syncFromUser);
+        window.netlifyIdentity.on('login', syncFromUser);
+      }
+
+      document.body.style.opacity = '1';
+    });
+
+    function setHeaderName(name) {
+      document.getElementById('headerUserName').textContent = (name || 'User').trim() || 'User';
+    }
+
+    function toggleHistory() {
+      const card = document.getElementById('historyCard');
+      const isHidden = card.classList.contains('hidden');
+
+      if (isHidden) {
+        renderHistory();
+      }
+
+      card.classList.toggle('hidden');
+    }
+
+    function renderHistory() {
+      const historyList = document.getElementById('historyList');
+      const entries = (window.JournalStore && typeof window.JournalStore.getLastJournalEntries === 'function')
+        ? window.JournalStore.getLastJournalEntries(currentUserKey, 10)
+        : [];
+
+      if (!entries.length) {
+        historyList.innerHTML = '<p style="color: var(--dark-gray);">No journal entries yet.</p>';
+        return;
+      }
+
+      historyList.innerHTML = entries.map((entry) => {
+        const moodText = entry.mood ? `Mood: ${entry.mood}` : 'Mood: not selected';
+        return `
+          <article class="card" style="margin-bottom: var(--spacing-sm); padding: var(--spacing-sm);">
+            <p style="font-size: var(--font-size-xs); color: var(--dark-gray); margin-bottom: var(--spacing-xs);">
+              ${entry.date} • ${moodText}
+            </p>
+            <p style="margin: 0; white-space: pre-wrap;">${escapeHtml(entry.content)}</p>
+          </article>
+        `;
+      }).join('');
+    }
+
+    function escapeHtml(text) {
+      const div = document.createElement('div');
+      div.textContent = text || '';
+      return div.innerHTML;
+    }
+
+    function handleLogout() {
+      const redirectToLogin = () => {
+        window.location.assign('/test/login.html');
+      };
+
+      if (window.netlifyIdentity) {
+        window.netlifyIdentity.logout();
+      }
+
+      redirectToLogin();
+    }
+  </script>
+
+  <style>
+    body {
+      opacity: 0;
+      transition: opacity 0.5s ease;
+      background-color: var(--light-gray);
+    }
+
+    .app-header {
+      padding: var(--spacing-md) 0;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .header-content {
+      position: relative;
+    }
+
+    .logout-btn {
+      position: absolute;
+      top: 0;
+      right: 0;
+      border: 1px solid rgba(255, 255, 255, 0.75);
+      background: rgba(255, 255, 255, 0.16);
+      color: var(--white);
+      border-radius: var(--radius-sm);
+      padding: 6px 10px;
+      font-size: var(--font-size-xs);
+      cursor: pointer;
+      transition: background-color var(--transition-fast), transform var(--transition-fast);
+    }
+
+    .logout-btn:hover {
+      background: rgba(255, 255, 255, 0.28);
+      transform: translateY(-1px);
+    }
+  </style>
+
+</body>
+</html>

@@ -93,22 +93,35 @@
     quick exit
   </a>
   
-  <script src="js/app.js"></script>
+  <script src="../js/identity-display.js"></script>
+  <script src="../js/journal-store.js"></script>
   <script>
     let selectedMood = null;
+    let currentUserKey = 'anonymous';
     
     window.addEventListener('load', () => {
-      const cachedName = localStorage.getItem('brightbridge_username') || 'User';
+      const cachedName = (window.IdentityDisplayName
+        && typeof window.IdentityDisplayName.readStoredDisplayName === 'function')
+        ? window.IdentityDisplayName.readStoredDisplayName()
+        : '';
       setWelcomeName(cachedName);
 
       if (window.netlifyIdentity) {
         window.netlifyIdentity.init();
 
         const syncFromUser = (user) => {
-          const resolvedName = getDisplayNameFromUser(user);
+          // Use shared resolver so this page matches login/dashboard fallback behavior.
+          const resolvedName = (window.IdentityDisplayName
+            && typeof window.IdentityDisplayName.syncStoredDisplayName === 'function')
+            ? window.IdentityDisplayName.syncStoredDisplayName(user)
+            : '';
+
           if (resolvedName) {
-            localStorage.setItem('brightbridge_username', resolvedName);
             setWelcomeName(resolvedName);
+          }
+
+          if (window.JournalStore && typeof window.JournalStore.resolveUserKey === 'function') {
+            currentUserKey = window.JournalStore.resolveUserKey(user);
           }
         };
 
@@ -123,42 +136,6 @@
     function setWelcomeName(name) {
       document.getElementById('userName').textContent = (name || 'User').trim() || 'User';
     }
-
-    function getDisplayNameFromUser(user) {
-      if (!user) {
-        return '';
-      }
-
-      const metadata = user.user_metadata || {};
-      const identityData = Array.isArray(user.identities) && user.identities.length > 0
-        ? (user.identities[0].identity_data || {})
-        : {};
-
-      const candidates = [
-        metadata.full_name,
-        metadata.name,
-        metadata.fullName,
-        identityData.full_name,
-        identityData.name,
-        user.email,
-        identityData.email
-      ];
-
-      for (const candidate of candidates) {
-        if (!candidate || typeof candidate !== 'string') {
-          continue;
-        }
-
-        const cleaned = candidate.trim();
-        if (!cleaned) {
-          continue;
-        }
-
-        return cleaned.includes('@') ? cleaned.split('@')[0] : cleaned;
-      }
-
-      return '';
-    }
     
     function selectMood(mood) {
       selectedMood = mood;
@@ -170,16 +147,10 @@
       const selectedBtn = document.querySelector(`[data-mood="${mood}"]`);
       selectedBtn.classList.add('active');
       
-      const moodEntry = {
-        mood: mood,
-        timestamp: new Date().toISOString(),
-        date: new Date().toLocaleDateString()
-      };
-      
-      let moodHistory = JSON.parse(localStorage.getItem('brightbridge_mood_history') || '[]');
-      moodHistory.push(moodEntry);
-      
-      localStorage.setItem('brightbridge_mood_history', JSON.stringify(moodHistory));
+      // Keep page logic simple by delegating storage details to JournalStore.
+      if (window.JournalStore && typeof window.JournalStore.saveMood === 'function') {
+        window.JournalStore.saveMood(currentUserKey, mood);
+      }
       
       selectedBtn.style.transform = 'scale(1.1)';
       setTimeout(() => {
@@ -191,19 +162,9 @@
       event.preventDefault();
       
       const journalEntry = document.getElementById('dailyEntry').value;
-      
-      if (journalEntry.trim()) {
-        const entry = {
-          content: journalEntry,
-          timestamp: new Date().toISOString(),
-          date: new Date().toLocaleDateString(),
-          mood: selectedMood
-        };
-        
-        let journalHistory = JSON.parse(localStorage.getItem('brightbridge_journal') || '[]');
-        journalHistory.push(entry);
-        
-        localStorage.setItem('brightbridge_journal', JSON.stringify(journalHistory));
+
+      if (window.JournalStore && typeof window.JournalStore.saveJournalEntry === 'function') {
+        window.JournalStore.saveJournalEntry(currentUserKey, journalEntry, selectedMood);
       }
       
       window.location.href = 'home.html';
