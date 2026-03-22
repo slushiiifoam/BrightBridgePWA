@@ -43,8 +43,8 @@
       </a>
     </section>
 
-    <section id="historyCard" class="card" aria-live="polite">
-      <h2 style="font-size: var(--font-size-md); margin-bottom: var(--spacing-sm);">Last 10 Journal Entries</h2>
+    <section id="historyCard" class="card history-shell" aria-live="polite">
+      <h2 class="history-title">Last 10 Journal Entries</h2>
       <div id="historyList"></div>
     </section>
 
@@ -94,21 +94,48 @@
         : [];
 
       if (!entries.length) {
-        historyList.innerHTML = '<p style="color: var(--dark-gray);">No journal entries yet.</p>';
+        historyList.innerHTML = `
+          <div class="entry-empty">
+            <p>No journal entries yet.</p>
+            <p>Your last 10 entries will appear here automatically.</p>
+          </div>
+        `;
         return;
       }
 
       historyList.innerHTML = entries.map((entry) => {
-        const moodText = entry.mood ? `Mood: ${entry.mood}` : 'Mood: not selected';
+        const mood = entry.mood || 'none';
+        const moodEmoji = getMoodEmoji(mood);
+        const moodLabel = mood === 'none' ? 'Not selected' : capitalize(mood);
+
         return `
-          <article class="card" style="margin-bottom: var(--spacing-sm); padding: var(--spacing-sm);">
-            <p style="font-size: var(--font-size-xs); color: var(--dark-gray); margin-bottom: var(--spacing-xs);">
-              ${entry.date} • ${moodText}
-            </p>
-            <p style="margin: 0; white-space: pre-wrap;">${escapeHtml(entry.content)}</p>
+          <article class="journal-entry-card mood-${mood}">
+            <div class="entry-top-row">
+              <p class="entry-date">${entry.date}</p>
+              <div class="entry-mood-badge" aria-label="Mood ${moodLabel}">
+                <span class="entry-mood-emoji">${moodEmoji}</span>
+                <span class="entry-mood-label">${moodLabel}</span>
+              </div>
+            </div>
+            <p class="entry-content">${escapeHtml(entry.content)}</p>
           </article>
         `;
       }).join('');
+    }
+
+    function getMoodEmoji(mood) {
+      if (mood === 'happy') return '😊';
+      if (mood === 'neutral') return '😐';
+      if (mood === 'sad') return '☹️';
+      return '📝';
+    }
+
+    function capitalize(value) {
+      if (!value) {
+        return '';
+      }
+
+      return value.charAt(0).toUpperCase() + value.slice(1);
     }
 
     function escapeHtml(text) {
@@ -183,6 +210,119 @@
     .logout-btn:hover {
       background: rgba(255, 255, 255, 0.28);
       transform: translateY(-1px);
+    }
+
+    .history-shell {
+      background: linear-gradient(165deg, #ffffff 0%, #f7f8ff 100%);
+      border: 1px solid #eceeff;
+      box-shadow: 0 14px 30px rgba(41, 50, 96, 0.08);
+    }
+
+    .history-title {
+      font-size: clamp(1.2rem, 2.2vw, 1.45rem);
+      margin-bottom: var(--spacing-md);
+    }
+
+    .entry-empty {
+      background: #ffffff;
+      border: 1px dashed #d7dbf0;
+      border-radius: var(--radius-md);
+      padding: var(--spacing-md);
+      color: var(--dark-gray);
+      text-align: center;
+    }
+
+    .entry-empty p {
+      margin: 0;
+    }
+
+    .entry-empty p + p {
+      margin-top: var(--spacing-xs);
+      font-size: var(--font-size-xs);
+    }
+
+    .journal-entry-card {
+      background: #ffffff;
+      border-radius: var(--radius-md);
+      border: 1px solid #eceff8;
+      margin-bottom: var(--spacing-md);
+      padding: var(--spacing-md);
+      box-shadow: 0 6px 16px rgba(43, 51, 95, 0.08);
+    }
+
+    .journal-entry-card:last-child {
+      margin-bottom: 0;
+    }
+
+    .entry-top-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: var(--spacing-sm);
+      margin-bottom: var(--spacing-sm);
+    }
+
+    .entry-date {
+      margin: 0;
+      color: #5e647c;
+      font-size: var(--font-size-xs);
+      font-weight: 600;
+    }
+
+    .entry-mood-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 10px;
+      border-radius: 999px;
+      font-weight: 700;
+      font-size: 13px;
+      color: #1f2746;
+      background: #eaf0ff;
+    }
+
+    .entry-mood-emoji {
+      font-size: 20px;
+      line-height: 1;
+    }
+
+    .entry-content {
+      margin: 0;
+      white-space: pre-wrap;
+      font-size: var(--font-size-sm);
+      line-height: 1.7;
+      color: #20253b;
+    }
+
+    .mood-happy .entry-mood-badge {
+      background: #d9f5de;
+      color: #1f5f2d;
+    }
+
+    .mood-neutral .entry-mood-badge {
+      background: #fff4d5;
+      color: #6b5600;
+    }
+
+    .mood-sad .entry-mood-badge {
+      background: #ffe2e2;
+      color: #7e1f1f;
+    }
+
+    .mood-none .entry-mood-badge {
+      background: #edf0f8;
+      color: #425070;
+    }
+
+    @media (max-width: 480px) {
+      .entry-top-row {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+
+      .entry-content {
+        font-size: 15px;
+      }
     }
   </style>
 
