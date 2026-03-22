@@ -3,6 +3,16 @@ const Auth = {
     user: null,
     
     init() {
+
+        // Handle redirect after email confirmation
+        netlifyIdentity.on('init', user => {
+            this.user = user;
+            this.onAuthChange();
+
+            if (user) {
+                
+            }
+        });
         
         // Set up event listeners
         netlifyIdentity.on('login', user => {
@@ -19,15 +29,6 @@ const Auth = {
             console.error('Identity error:', err);
         });
         
-        // Handle redirect after email confirmation
-        netlifyIdentity.on('init', user => {
-            if (user) {
-                this.user = user;
-
-                if(!localStorage.getItem('brightbridge_returning_user'))
-                    this.onAuthChange();
-            }
-        });
 
         // Initialize Netlify Identity
         netlifyIdentity.init();

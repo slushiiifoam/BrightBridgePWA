@@ -57,8 +57,9 @@ const App = {
     
     updateAuthUI() {
         const user = netlifyIdentity.currentUser();
+        const isDashboard = window.location.pathname.includes('login');
 
-        if (user) {
+        if (user && isDashboard) {
             Auth.user = user;
             setTimeout(() => {
                 window.location.assign('/test/home.html');
