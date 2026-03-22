@@ -3,10 +3,6 @@ const Auth = {
     user: null,
     
     init() {
-
-        if (window.location.hash.includes('access_token')) {
-            window.history.replaceState("", document.title, window.location.pathname);
-        }
         
         // Check for existing user
         this.user = netlifyIdentity.currentUser();
@@ -24,16 +20,6 @@ const Auth = {
         
         netlifyIdentity.on('error', err => {
             console.error('Identity error:', err);
-        });
-        
-        // Handle redirect after email confirmation
-        netlifyIdentity.on('init', user => {
-            if (user) {
-                this.user = user;
-
-                if(!localStorage.getItem('brightbridge_returning_user'))
-                    this.onAuthChange();
-            }
         });
 
         // Initialize Netlify Identity
