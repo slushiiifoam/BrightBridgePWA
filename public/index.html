@@ -55,33 +55,16 @@
   </a>
   
   <script>
-    function getPostLoginDestination() {
-      const isReturningUser = localStorage.getItem('brightbridge_returning_user') === 'true';
-      if (!isReturningUser) {
-        localStorage.setItem('brightbridge_returning_user', 'true');
-      }
-
-      return isReturningUser ? './assets/home.html' : './assets/home-first-time.html';
-    }
-
     function enterApp() {
       document.body.style.opacity = '0';
       document.body.style.transition = 'opacity 0.3s ease';
-
-      const signedOutByUser = localStorage.getItem('brightbridge_signed_out') === 'true';
-      const currentUser = netlifyIdentity.currentUser();
-      const destination = (currentUser && !signedOutByUser)
-        ? getPostLoginDestination()
-        : './test/login.html';
       
       setTimeout(() => {
-        window.location.href = destination;
+        window.location.href = './test/login.html';
       }, 300);
     }
     
     window.addEventListener('load', () => {
-      const apiUrl = `${window.location.origin}/.netlify/identity`;
-      netlifyIdentity.init({ APIUrl: apiUrl });
       document.body.style.opacity = '1';
     });
   </script>
