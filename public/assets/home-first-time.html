@@ -101,6 +101,7 @@
   </a>
   
   <script src="../js/identity-display.js"></script>
+  <script src="../js/identity-session.js"></script>
   <script src="../js/journal-store.js"></script>
   <script>
     let selectedMood = null;
@@ -119,8 +120,12 @@
       setWelcomeName(cachedName);
 
       if (window.netlifyIdentity) {
-        const apiUrl = `${window.location.origin}/.netlify/identity`;
-        window.netlifyIdentity.init({ APIUrl: apiUrl });
+        if (window.IdentitySession && typeof window.IdentitySession.initIdentity === 'function') {
+          window.IdentitySession.initIdentity();
+        } else {
+          const apiUrl = `${window.location.origin}/.netlify/identity`;
+          window.netlifyIdentity.init({ APIUrl: apiUrl });
+        }
 
         const syncFromUser = (user) => {
           // Use shared resolver so this page matches login/dashboard fallback behavior.
@@ -239,35 +244,12 @@
     }
 
     function handleLogout() {
-      const redirectToLogin = () => {
-        window.location.assign('/test/login.html');
-      };
-
-      localStorage.setItem('brightbridge_signed_out', 'true');
-
-      if (!window.netlifyIdentity) {
-        redirectToLogin();
+      if (window.IdentitySession && typeof window.IdentitySession.logoutAndRedirect === 'function') {
+        window.IdentitySession.logoutAndRedirect('/test/login.html');
         return;
       }
 
-      let redirected = false;
-      const safeRedirect = () => {
-        if (redirected) {
-          return;
-        }
-
-        redirected = true;
-        redirectToLogin();
-      };
-
-      window.netlifyIdentity.on('logout', safeRedirect);
-
-      const result = window.netlifyIdentity.logout();
-      if (result && typeof result.then === 'function') {
-        result.then(safeRedirect).catch(safeRedirect);
-      }
-
-      setTimeout(safeRedirect, 1500);
+      window.location.assign('/test/login.html');
     }
   </script>
   
