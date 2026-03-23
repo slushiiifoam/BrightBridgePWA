@@ -15,7 +15,7 @@ const Auth = {
             this.user = user;
 
             if (user) localStorage.setItem('brightbridge.user', JSON.stringify(user));
-            else localStorage.removeItem('brightbridge.user', JSON.stringify(user))
+            else localStorage.removeItem('brightbridge.user')
 
             this.onAuthChange();
         });
