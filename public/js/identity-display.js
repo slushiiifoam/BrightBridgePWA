@@ -17,6 +17,30 @@
     return cleaned.includes('@') ? cleaned.split('@')[0] : cleaned;
   }
 
+  function decodeJwtClaims(tokenValue) {
+    if (!tokenValue || typeof tokenValue !== 'string') {
+      return {};
+    }
+
+    const parts = tokenValue.split('.');
+    if (parts.length < 2) {
+      return {};
+    }
+
+    try {
+      const base64 = parts[1].replace(/-/g, '+').replace(/_/g, '/');
+      const padded = base64 + '==='.slice((base64.length + 3) % 4);
+      const json = decodeURIComponent(atob(padded).split('').map(ch => {
+        return `%${(`00${ch.charCodeAt(0).toString(16)}`).slice(-2)}`;
+      }).join(''));
+
+      const parsed = JSON.parse(json);
+      return parsed && typeof parsed === 'object' ? parsed : {};
+    } catch (error) {
+      return {};
+    }
+  }
+
   function readStoredDisplayName() {
     try {
       const stored = (localStorage.getItem(STORAGE_KEY) || '').trim();
@@ -39,6 +63,8 @@
     const profile = user.profile || {};
     const token = user.token || {};
     const tokenUserMetadata = token.user_metadata || {};
+    const tokenClaims = decodeJwtClaims(token.access_token || token.id_token || '');
+    const claimsUserMetadata = tokenClaims.user_metadata || {};
     const identities = Array.isArray(user.identities) ? user.identities : [];
     const identityCandidates = identities.flatMap(identity => {
       const data = identity && identity.identity_data ? identity.identity_data : {};
@@ -52,10 +78,16 @@
       metadata.fullName,
       tokenUserMetadata.full_name,
       tokenUserMetadata.name,
+      claimsUserMetadata.full_name,
+      claimsUserMetadata.name,
+      tokenClaims.name,
+      tokenClaims.given_name,
+      tokenClaims.nickname,
       profile.full_name,
       profile.name,
       user.email,
       token.email,
+      tokenClaims.email,
       profile.email,
       ...identityCandidates
     ];
