@@ -202,8 +202,6 @@
         window.location.assign('/test/login.html');
       };
 
-      localStorage.setItem('brightbridge_signed_out', 'true');
-
       if (!window.netlifyIdentity) {
         redirectToLogin();
         return;

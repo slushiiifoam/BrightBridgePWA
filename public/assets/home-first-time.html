@@ -19,8 +19,8 @@
   
   <header class="gradient-header">
     <div class="header-content">
-      <button id="editBackBtn" type="button" class="back-btn hidden" onclick="goBackToDailyCheckin()" aria-label="Back to diary entry page">
-        ← Diary Entry
+      <button id="editBackBtn" type="button" class="back-btn hidden" onclick="goBackToDailyCheckin()" aria-label="Back to daily check-in">
+        ← Back
       </button>
       <button type="button" class="logout-btn" onclick="handleLogout()" aria-label="Log out">
         Log Out
@@ -89,7 +89,7 @@
         </button>
 
         <button id="editSubmitBtn" type="submit" class="btn btn-primary btn-large hidden" style="width: 100%;">
-          Save Changes and Return to Diary Entry
+          Save Changes and Return to Daily Check-In
         </button>
       </form>
     </section>
@@ -242,8 +242,6 @@
       const redirectToLogin = () => {
         window.location.assign('/test/login.html');
       };
-
-      localStorage.setItem('brightbridge_signed_out', 'true');
 
       if (!window.netlifyIdentity) {
         redirectToLogin();
