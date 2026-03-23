@@ -4,6 +4,10 @@
   const MOOD_KEY = 'brightbridge_mood_history';
   const JOURNAL_KEY = 'brightbridge_journal';
 
+  function getTodayDateLabel() {
+    return new Date().toLocaleDateString();
+  }
+
   function readList(key) {
     try {
       const raw = localStorage.getItem(key);
@@ -73,6 +77,61 @@
     return entry;
   }
 
+  function getTodayEntry(userKey) {
+    const today = getTodayDateLabel();
+
+    return readList(JOURNAL_KEY)
+      .filter(item => item && item.userKey === userKey && item.date === today)
+      .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))[0] || null;
+  }
+
+  function saveOrUpdateTodayEntry(userKey, content, mood) {
+    const trimmed = (content || '').trim();
+    if (!trimmed && !mood) {
+      return null;
+    }
+
+    const nowIso = new Date().toISOString();
+    const today = getTodayDateLabel();
+    const list = readList(JOURNAL_KEY);
+    let target = null;
+
+    // Update the most recent entry for today instead of adding duplicates.
+    for (let i = list.length - 1; i >= 0; i -= 1) {
+      const item = list[i];
+      if (item && item.userKey === userKey && item.date === today) {
+        target = item;
+        break;
+      }
+    }
+
+    if (target) {
+      if (trimmed) {
+        target.content = trimmed;
+      }
+
+      if (mood) {
+        target.mood = mood;
+      }
+
+      target.timestamp = nowIso;
+      writeList(JOURNAL_KEY, list);
+      return target;
+    }
+
+    const entry = {
+      userKey,
+      content: trimmed,
+      mood: mood || null,
+      timestamp: nowIso,
+      date: today
+    };
+
+    list.push(entry);
+    writeList(JOURNAL_KEY, list);
+    return entry;
+  }
+
   function getLastJournalEntries(userKey, limit) {
     const max = Number(limit) > 0 ? Number(limit) : 10;
 
@@ -86,6 +145,8 @@
     resolveUserKey,
     saveMood,
     saveJournalEntry,
+    getTodayEntry,
+    saveOrUpdateTodayEntry,
     getLastJournalEntries
   };
 })(window);

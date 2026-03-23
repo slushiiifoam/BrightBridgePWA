@@ -123,6 +123,7 @@
 
           if (window.JournalStore && typeof window.JournalStore.resolveUserKey === 'function') {
             currentUserKey = window.JournalStore.resolveUserKey(user);
+            loadTodayEntry();
           }
         };
 
@@ -132,21 +133,49 @@
       }
       
       document.body.style.opacity = '1';
+      loadTodayEntry();
     });
 
     function setWelcomeName(name) {
       document.getElementById('userName').textContent = (name || 'User').trim() || 'User';
     }
     
-    function selectMood(mood) {
+    function loadTodayEntry() {
+      if (!window.JournalStore || typeof window.JournalStore.getTodayEntry !== 'function') {
+        return;
+      }
+
+      const todayEntry = window.JournalStore.getTodayEntry(currentUserKey);
+      if (!todayEntry) {
+        return;
+      }
+
+      if (todayEntry.content) {
+        document.getElementById('dailyEntry').value = todayEntry.content;
+      }
+
+      if (todayEntry.mood) {
+        applyMoodSelection(todayEntry.mood);
+      }
+    }
+
+    function applyMoodSelection(mood) {
       selectedMood = mood;
-      
+
       document.querySelectorAll('.mood-btn').forEach(btn => {
         btn.classList.remove('active');
       });
 
       const selectedBtn = document.querySelector(`[data-mood="${mood}"]`);
-      selectedBtn.classList.add('active');
+      if (selectedBtn) {
+        selectedBtn.classList.add('active');
+      }
+    }
+
+    function selectMood(mood) {
+      applyMoodSelection(mood);
+
+      const selectedBtn = document.querySelector(`[data-mood="${mood}"]`);
       
       // Keep page logic simple by delegating storage details to JournalStore.
       if (window.JournalStore && typeof window.JournalStore.saveMood === 'function') {
@@ -164,7 +193,9 @@
       
       const journalEntry = document.getElementById('dailyEntry').value;
 
-      if (window.JournalStore && typeof window.JournalStore.saveJournalEntry === 'function') {
+      if (window.JournalStore && typeof window.JournalStore.saveOrUpdateTodayEntry === 'function') {
+        window.JournalStore.saveOrUpdateTodayEntry(currentUserKey, journalEntry, selectedMood);
+      } else if (window.JournalStore && typeof window.JournalStore.saveJournalEntry === 'function') {
         window.JournalStore.saveJournalEntry(currentUserKey, journalEntry, selectedMood);
       }
       
