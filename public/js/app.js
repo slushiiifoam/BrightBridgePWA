@@ -36,7 +36,7 @@ const App = {
     
     updateAuthUI() {
         var savedUser = localStorage.getItem('brightbridge.user');
-        var user = JSON.parse(savedUser);
+        var user;
 
         try {
             user = savedUser ? JSON.parse(savedUser) : null;
@@ -48,12 +48,17 @@ const App = {
         if (!user) {
             // Only redirect if we are NOT already on the login page{
 
-            if(!window.location.pathname.includes('login.html'))
+            if(!window.location.pathname.includes('login.html')){
                 window.location.assign('/test/login.html');
-
+                console.log('redirecting to login page');
+                return;
+            }
+                
+            console.log('the user doesnt exist but is on the login page');
             return; // Stay here, do nothing else.
         }
 
+        console.log('the user exists');
         // IF THE USER EXISTS:
         if(window.location.pathname.includes('login.html'))
             window.location.assign('/test/home.html');
