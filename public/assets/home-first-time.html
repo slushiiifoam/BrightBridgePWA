@@ -19,6 +19,9 @@
   
   <header class="gradient-header">
     <div class="header-content">
+      <button id="editBackBtn" type="button" class="back-btn hidden" onclick="goBackToDailyCheckin()" aria-label="Back to daily check-in">
+        ← Back
+      </button>
       <button type="button" class="logout-btn" onclick="handleLogout()" aria-label="Log out">
         Log Out
       </button>
@@ -152,18 +155,25 @@
     function updateModeButtons() {
       const firstTimeBtn = document.getElementById('firstTimeSubmitBtn');
       const editBtn = document.getElementById('editSubmitBtn');
+      const editBackBtn = document.getElementById('editBackBtn');
 
-      if (!firstTimeBtn || !editBtn) {
+      if (!firstTimeBtn || !editBtn || !editBackBtn) {
         return;
       }
 
       if (isEditMode) {
         firstTimeBtn.classList.add('hidden');
         editBtn.classList.remove('hidden');
+        editBackBtn.classList.remove('hidden');
       } else {
         editBtn.classList.add('hidden');
         firstTimeBtn.classList.remove('hidden');
+        editBackBtn.classList.add('hidden');
       }
+    }
+
+    function goBackToDailyCheckin() {
+      window.location.assign('daily-checkin.html');
     }
     
     function loadTodayEntry() {
@@ -294,6 +304,25 @@
       background: rgba(255, 255, 255, 0.28);
       transform: translateY(-1px);
     }
+
+    .back-btn {
+      position: absolute;
+      top: 16px;
+      left: 16px;
+      border: 1px solid rgba(255, 255, 255, 0.75);
+      background: rgba(255, 255, 255, 0.16);
+      color: var(--white);
+      border-radius: var(--radius-sm);
+      padding: 6px 10px;
+      font-size: var(--font-size-xs);
+      cursor: pointer;
+      transition: background-color var(--transition-fast), transform var(--transition-fast);
+    }
+
+    .back-btn:hover {
+      background: rgba(255, 255, 255, 0.28);
+      transform: translateY(-1px);
+    }
     
     .welcome-section h1 {
       font-size: var(--font-size-lg);
@@ -351,6 +380,11 @@
       .logout-btn {
         top: 12px;
         right: 12px;
+      }
+
+      .back-btn {
+        top: 12px;
+        left: 12px;
       }
     }
     
