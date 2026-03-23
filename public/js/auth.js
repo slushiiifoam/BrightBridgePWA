@@ -3,26 +3,16 @@ const Auth = {
     user: null,
     
     init() {
-        if (window.IdentitySession && typeof window.IdentitySession.initIdentity === 'function') {
-            window.IdentitySession.initIdentity();
-        } else {
-            // Safari can be strict with relative endpoint resolution for identity settings.
-            const apiUrl = `${window.location.origin}/.netlify/identity`;
-            netlifyIdentity.init({ APIUrl: apiUrl });
-        }
+        // Safari can be strict with relative endpoint resolution for identity settings.
+        const apiUrl = `${window.location.origin}/.netlify/identity`;
+        netlifyIdentity.init({ APIUrl: apiUrl });
         
         // Check for existing user
-        this.user = (window.IdentitySession && typeof window.IdentitySession.getCurrentUser === 'function')
-            ? window.IdentitySession.getCurrentUser()
-            : netlifyIdentity.currentUser();
+        this.user = netlifyIdentity.currentUser();
         
         // Set up event listeners
         netlifyIdentity.on('login', user => {
-            if (window.IdentitySession && typeof window.IdentitySession.clearSignedOutLock === 'function') {
-                window.IdentitySession.clearSignedOutLock();
-            } else {
-                localStorage.removeItem('brightbridge_signed_out');
-            }
+            localStorage.removeItem('brightbridge_signed_out');
             this.user = user;
             this.onAuthChange();
             netlifyIdentity.close();
@@ -58,11 +48,7 @@ const Auth = {
     
     logout() {
         if (confirm('Are you sure you want to log out?')) {
-            if (window.IdentitySession && typeof window.IdentitySession.setSignedOutLock === 'function') {
-                window.IdentitySession.setSignedOutLock();
-            } else {
-                localStorage.setItem('brightbridge_signed_out', 'true');
-            }
+            localStorage.setItem('brightbridge_signed_out', 'true');
             netlifyIdentity.logout();
         }
     },

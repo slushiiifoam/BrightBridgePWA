@@ -54,8 +54,6 @@
     quick exit
   </a>
   
-  <script src="./js/identity-session.js"></script>
-  
   <script>
     function getPostLoginDestination() {
       const isReturningUser = localStorage.getItem('brightbridge_returning_user') === 'true';
@@ -70,12 +68,8 @@
       document.body.style.opacity = '0';
       document.body.style.transition = 'opacity 0.3s ease';
 
-      const signedOutByUser = (window.IdentitySession && typeof window.IdentitySession.hasSignedOutLock === 'function')
-        ? window.IdentitySession.hasSignedOutLock()
-        : localStorage.getItem('brightbridge_signed_out') === 'true';
-      const currentUser = (window.IdentitySession && typeof window.IdentitySession.getCurrentUser === 'function')
-        ? window.IdentitySession.getCurrentUser()
-        : netlifyIdentity.currentUser();
+      const signedOutByUser = localStorage.getItem('brightbridge_signed_out') === 'true';
+      const currentUser = netlifyIdentity.currentUser();
       const destination = (currentUser && !signedOutByUser)
         ? getPostLoginDestination()
         : './test/login.html';
@@ -86,12 +80,8 @@
     }
     
     window.addEventListener('load', () => {
-      if (window.IdentitySession && typeof window.IdentitySession.initIdentity === 'function') {
-        window.IdentitySession.initIdentity();
-      } else {
-        const apiUrl = `${window.location.origin}/.netlify/identity`;
-        netlifyIdentity.init({ APIUrl: apiUrl });
-      }
+      const apiUrl = `${window.location.origin}/.netlify/identity`;
+      netlifyIdentity.init({ APIUrl: apiUrl });
       document.body.style.opacity = '1';
     });
   </script>
