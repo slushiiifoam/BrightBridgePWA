@@ -81,8 +81,12 @@
           ></textarea>
         </div>
         
-        <button type="submit" class="btn btn-primary btn-large" style="width: 100%;">
+        <button id="firstTimeSubmitBtn" type="submit" class="btn btn-primary btn-large" style="width: 100%;">
           Continue to Dashboard
+        </button>
+
+        <button id="editSubmitBtn" type="submit" class="btn btn-primary btn-large hidden" style="width: 100%;">
+          Save Changes and Return to Daily Check-In
         </button>
       </form>
     </section>
@@ -98,8 +102,13 @@
   <script>
     let selectedMood = null;
     let currentUserKey = 'anonymous';
+    let isEditMode = false;
     
     window.addEventListener('load', () => {
+      const params = new URLSearchParams(window.location.search);
+      isEditMode = params.get('mode') === 'edit';
+      updateModeButtons();
+
       const cachedName = (window.IdentityDisplayName
         && typeof window.IdentityDisplayName.readStoredDisplayName === 'function')
         ? window.IdentityDisplayName.readStoredDisplayName()
@@ -138,6 +147,23 @@
 
     function setWelcomeName(name) {
       document.getElementById('userName').textContent = (name || 'User').trim() || 'User';
+    }
+
+    function updateModeButtons() {
+      const firstTimeBtn = document.getElementById('firstTimeSubmitBtn');
+      const editBtn = document.getElementById('editSubmitBtn');
+
+      if (!firstTimeBtn || !editBtn) {
+        return;
+      }
+
+      if (isEditMode) {
+        firstTimeBtn.classList.add('hidden');
+        editBtn.classList.remove('hidden');
+      } else {
+        editBtn.classList.add('hidden');
+        firstTimeBtn.classList.remove('hidden');
+      }
     }
     
     function loadTodayEntry() {
@@ -199,7 +225,7 @@
         window.JournalStore.saveJournalEntry(currentUserKey, journalEntry, selectedMood);
       }
       
-      window.location.href = 'home.html';
+      window.location.href = isEditMode ? 'daily-checkin.html' : 'home.html';
     }
 
     function handleLogout() {
