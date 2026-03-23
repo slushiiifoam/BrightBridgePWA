@@ -28,6 +28,8 @@ const App = {
     
     setupEventListeners() {
         this.elements.loginBtn.addEventListener('click', async () => {
+            // Explicit login action should clear manual sign-out lock.
+            localStorage.removeItem('brightbridge_signed_out');
             await Auth.login();
             this.updateAuthUI();
         });
@@ -50,6 +52,13 @@ const App = {
     
     updateAuthUI() {
         const user = netlifyIdentity.currentUser();
+        const signedOutByUser = localStorage.getItem('brightbridge_signed_out') === 'true';
+
+        if (user && signedOutByUser) {
+            // Respect explicit logout: keep login page instead of auto-signing back in.
+            this.showAuthView();
+            return;
+        }
 
         if (user) {
             Auth.user = user;

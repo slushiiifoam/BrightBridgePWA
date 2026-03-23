@@ -19,8 +19,8 @@
   <header class="app-header gradient-header">
     <div class="container">
       <div class="header-content">
-        <button class="back-button" onclick="goBack()" aria-label="Go back">
-          ← Back
+        <button class="back-button" onclick="goBack()" aria-label="Go to home page">
+          ← Home
         </button>
         <h1 class="text-white">Daily Check-In</h1>
         <button type="button" class="logout-btn" onclick="handleLogout()" aria-label="Log out">
@@ -89,7 +89,7 @@
     });
 
     function goBack() {
-      window.history.back();
+      window.location.assign('home.html');
     }
 
     function renderHistory() {
@@ -153,6 +153,8 @@
       const redirectToLogin = () => {
         window.location.assign('/test/login.html');
       };
+
+      localStorage.setItem('brightbridge_signed_out', 'true');
 
       if (!window.netlifyIdentity) {
         redirectToLogin();

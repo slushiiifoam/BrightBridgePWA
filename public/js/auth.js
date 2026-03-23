@@ -12,6 +12,7 @@ const Auth = {
         
         // Set up event listeners
         netlifyIdentity.on('login', user => {
+            localStorage.removeItem('brightbridge_signed_out');
             this.user = user;
             this.onAuthChange();
             netlifyIdentity.close();
@@ -47,6 +48,7 @@ const Auth = {
     
     logout() {
         if (confirm('Are you sure you want to log out?')) {
+            localStorage.setItem('brightbridge_signed_out', 'true');
             netlifyIdentity.logout();
         }
     },
