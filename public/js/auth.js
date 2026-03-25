@@ -64,6 +64,7 @@ const Auth = {
                 localStorage.setItem('brightbridge.user', JSON.stringify(user));
             }
             
+            this.onAuthChange();
         });
         
         // Set up event listeners
@@ -87,8 +88,6 @@ const Auth = {
         netlifyIdentity.on('error', err => {
             console.error('Identity error:', err);
         });
-
-        this.onAuthChange();
     },
     
     login() {
