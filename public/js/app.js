@@ -35,6 +35,7 @@ const App = {
     },
     
     updateAuthUI() {
+        console.log('swtiching the user to another page')
         var savedUser = localStorage.getItem('brightbridge.user');
         var user;
 
