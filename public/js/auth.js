@@ -13,6 +13,23 @@ const parseUserToken = () => {
 };
 
 
+//parses and returns the jwt token
+const parseJWT = (token) => {
+    // 1. Split the token by the dots and grab the middle part (index 1)
+    const base64Url = token.split('.')[1];
+    
+    // 2. Replace URL-safe characters back to standard Base64
+    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+    
+    // 3. Decode the Base64 string into a JSON string, then parse it into an object
+    const jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
+        return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+    }).join(''));
+
+    return JSON.parse(jsonPayload);
+}
+
+
 
 // Auth module - handles Netlify Identity authentication
 const Auth = {
@@ -125,18 +142,7 @@ const Auth = {
                 throw new Error('No valid access token state found');
             }
 
-            // 1. Split the token by the dots and grab the middle part (index 1)
-            const base64Url = token.split('.')[1];
-            
-            // 2. Replace URL-safe characters back to standard Base64
-            const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-            
-            // 3. Decode the Base64 string into a JSON string, then parse it into an object
-            const jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
-                return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
-            }).join(''));
-
-            const userData = JSON.parse(jsonPayload);
+            const userData = parseJWT(token);
 
             return userData.user_metadata.full_name || "User";
         } catch (e) {
