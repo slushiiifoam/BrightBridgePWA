@@ -207,7 +207,7 @@ p {
   box-shadow: var(--shadow-lg);
 }
 
-.logout-btn {
+#logout-btn {
       position: absolute;
       top: 0;
       right: 0;
@@ -219,13 +219,12 @@ p {
       font-size: var(--font-size-xs);
       cursor: pointer;
       transition: background-color var(--transition-fast), transform var(--transition-fast);
-    }
+}
 
-    .logout-btn:hover {
+#logout-btn:hover {
       background: rgba(255, 255, 255, 0.28);
       transform: translateY(-1px);
 }
-
 
 .help-fab {
   position: fixed;

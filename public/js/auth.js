@@ -29,6 +29,17 @@ const parseJWT = (token) => {
     return JSON.parse(jsonPayload);
 }
 
+//helper method that getives the jwt access token
+const getJWTToken = () => {
+    const userObj = parseUserToken();
+    if (!userObj) throw new Error('invalid user token');
+
+    const jwt = userObj.token?.access_token;
+    if (!jwt) throw new Error('invalid jwt token');
+
+    return parseJWT(jwt);
+};
+
 
 
 // Auth module - handles Netlify Identity authentication
@@ -53,7 +64,6 @@ const Auth = {
                 localStorage.setItem('brightbridge.user', JSON.stringify(user));
             }
             
-            this.onAuthChange();
         });
         
         // Set up event listeners
@@ -77,7 +87,8 @@ const Auth = {
         netlifyIdentity.on('error', err => {
             console.error('Identity error:', err);
         });
-        
+
+        this.onAuthChange();
     },
     
     login() {
@@ -120,33 +131,25 @@ const Auth = {
         return this.user;
     },
     
-    getUserId() {
-        return this.user ? this.user.id : null;
-    },
-    
     getToken() {
         return this.user ? this.user.token.access_token : null;
     },
     getUsername(){
-        var token = parseUserToken();
-
         try {
-    
-            if(!token){
-                throw new Error('No valid token is parsed');
-            }
-
-            token = token.token.access_token;
-
-            if(!token){
-                throw new Error('No valid access token state found');
-            }
-
-            const userData = parseJWT(token);
+            const userData = getJWTToken();
 
             return userData.user_metadata.full_name || "User";
         } catch (e) {
             console.error("Invalid token format", e);
+            this.logout();
+            return null;
+        }
+    },
+    getUserId() {
+        try {
+            const userData = getJWTToken();
+            return userData.sub; 
+        } catch (e) {
             this.logout();
             return null;
         }
