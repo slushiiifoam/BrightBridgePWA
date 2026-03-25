@@ -6,6 +6,15 @@ const Auth = {
         // Initialize Netlify Identity
         netlifyIdentity.init();
 
+        const savedUser = localStorage.getItem('brightbridge.user');
+        if (savedUser) {
+            try {
+                this.user = JSON.parse(savedUser);
+            } catch (e) {
+                this.user = null;
+            }
+        }
+
         // Handle redirect after email confirmation
         netlifyIdentity.on('init', user => {
             this.user = user;
