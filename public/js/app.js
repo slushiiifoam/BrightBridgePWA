@@ -11,6 +11,7 @@ const App = {
             this.elements = {
             loginBtn: document.getElementById('login-btn'),
             logoutBtn: document.getElementById('logout-btn'),
+            userDisplay: document.getElementById('user-display'),
         };
         }catch(e){
             alert('error: '+e)
@@ -31,6 +32,9 @@ const App = {
             this.elements.logoutBtn.addEventListener('click', () => {
                 Auth.logout();
             });
+
+        if(this.elements.userDisplay)
+            this.elements.userDisplay.textContent = Auth.getUsername() || "Guest";
         
     },
     

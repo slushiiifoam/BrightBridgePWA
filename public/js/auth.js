@@ -1,17 +1,29 @@
+//parses the user token
+const parseUserToken = () => {
+    const savedUser = localStorage.getItem('brightbridge.user');
+        if (savedUser) {
+            try {
+                return JSON.parse(savedUser);
+            } catch (e) {
+                console.log('No user exsits');
+                localStorage.removeItem('brightbridge.user');
+            }
+        }
+        return null;
+};
+
+
+
 // Auth module - handles Netlify Identity authentication
 const Auth = {
     user: null,
     
     init() { 
 
-        const savedUser = localStorage.getItem('brightbridge.user');
-        if (savedUser) {
-            try {
-                this.user = JSON.parse(savedUser);
-            } catch (e) {
-                this.user = null;
-            }
-        }
+        const savedUser = parseUserToken();
+
+        if(savedUser)
+            this.user = savedUser;
 
         // Initialize Netlify Identity
         netlifyIdentity.init();
@@ -97,5 +109,40 @@ const Auth = {
     
     getToken() {
         return this.user ? this.user.token.access_token : null;
+    },
+    getUsername(){
+        var token = parseUserToken();
+
+        try {
+    
+            if(!token){
+                throw new Error('No valid token is parsed');
+            }
+
+            token = token.token.access_token;
+
+            if(!token){
+                throw new Error('No valid access token state found');
+            }
+
+            // 1. Split the token by the dots and grab the middle part (index 1)
+            const base64Url = token.split('.')[1];
+            
+            // 2. Replace URL-safe characters back to standard Base64
+            const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+            
+            // 3. Decode the Base64 string into a JSON string, then parse it into an object
+            const jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
+                return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+            }).join(''));
+
+            const userData = JSON.parse(jsonPayload);
+
+            return userData.user_metadata.full_name || "User";
+        } catch (e) {
+            console.error("Invalid token format", e);
+            this.logout();
+            return null;
+        }
     }
 };
