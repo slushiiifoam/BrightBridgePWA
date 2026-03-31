@@ -18,6 +18,8 @@ const Auth = {
         // Handle redirect after email confirmation
         netlifyIdentity.on('init', user => {
 
+            user = parseUserToken();
+
             if(user){
                 this.user = user;
                 localStorage.setItem('brightbridge.user', JSON.stringify(user));
