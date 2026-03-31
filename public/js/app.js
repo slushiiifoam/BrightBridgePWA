@@ -67,7 +67,7 @@ const App = {
 
         console.log('the user exists');
         // IF THE USER EXISTS:
-        if(window.location.pathname.includes('login.html'))
+        if(window.location.pathname.includes('login.html') || window.location.pathname.includes('index.html'))
             window.location.assign('/test/home.html');
 
 }
