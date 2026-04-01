@@ -224,7 +224,7 @@
         result.then(safeRedirect).catch(safeRedirect);
       }
 
-      safeRedirect();
+      setTimeout(safeRedirect, 2000);
     }
   </script>
   
