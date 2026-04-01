@@ -175,8 +175,6 @@
       if (result && typeof result.then === 'function') {
         result.then(safeRedirect).catch(safeRedirect);
       }
-
-      setTimeout(safeRedirect, 2000);
     }
   </script>
 
