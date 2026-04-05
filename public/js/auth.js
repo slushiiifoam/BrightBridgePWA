@@ -1,53 +1,78 @@
+
+import {getJWTToken, parseUserToken} from '/js/tokenManager.js'
+
 // Auth module - handles Netlify Identity authentication
 const Auth = {
     user: null,
     
-    init() {
-        // Safari can be strict with relative endpoint resolution for identity settings.
-        const apiUrl = `${window.location.origin}/.netlify/identity`;
-        netlifyIdentity.init({ APIUrl: apiUrl });
-        
-        // Check for existing user
-        this.user = netlifyIdentity.currentUser();
+    init() { 
+
+        const savedUser = parseUserToken();
+
+        if(savedUser)
+            this.user = savedUser;
+
+        // Initialize Netlify Identity
+        netlifyIdentity.init();
+
+        // Handle redirect after email confirmation
+        netlifyIdentity.on('init', user => {
+
+            user = parseUserToken();
+
+            if(user){
+                this.user = user;
+                localStorage.setItem('brightbridge.user', JSON.stringify(user));
+            }
+            
+            this.onAuthChange();
+        });
         
         // Set up event listeners
         netlifyIdentity.on('login', user => {
             this.user = user;
+
+            if (user) localStorage.setItem('brightbridge.user', JSON.stringify(user));
+            else localStorage.removeItem('brightbridge.user');
+
             this.onAuthChange();
             netlifyIdentity.close();
         });
         
         netlifyIdentity.on('logout', () => {
+            console.log('triggering logout sequence');
             this.user = null;
+            localStorage.removeItem('brightbridge.user'); // Clean up the local storage token
             this.onAuthChange();
         });
         
         netlifyIdentity.on('error', err => {
-            const message = err && err.message ? err.message : '';
-            if (message.includes('Failed to load settings from') || message.includes('Load failed')) {
-                console.warn('Identity settings endpoint unavailable:', message);
-                return;
-            }
-
             console.error('Identity error:', err);
-        });
-        
-        // Handle redirect after email confirmation
-        netlifyIdentity.on('init', user => {
-            if (user) {
-                this.user = user;
-                this.onAuthChange();
-            }
         });
     },
     
     login() {
-        netlifyIdentity.open();
+         netlifyIdentity.open();
     },
     
     logout() {
         if (confirm('Are you sure you want to log out?')) {
-            netlifyIdentity.logout();
+            // 1. Immediately wipe the data locally. 
+            // We don't care what the server thinks anymore.
+            this.user = null;
+            localStorage.removeItem('brightbridge.user');
+
+            // 2. Try to tell Netlify to logout (it will likely fail with a 401/404, but that's okay)
+            try {
+                netlifyIdentity.logout();
+            } catch (e) {
+                console.log("Netlify logout call failed, moving on...");
+            }
+
+            // 3. DO THE REDIRECT IMMEDIATELY.
+            // This is the line that actually "moves" the user.
+            console.log("Local cleanup done. Forcing redirect to login...");
+            window.location.assign('/test/login.html');
         }
     },
     
@@ -66,11 +91,29 @@ const Auth = {
         return this.user;
     },
     
-    getUserId() {
-        return this.user ? this.user.id : null;
-    },
-    
     getToken() {
         return this.user ? this.user.token.access_token : null;
+    },
+    getUsername(){
+        try {
+            const userData = getJWTToken();
+
+            return userData.user_metadata.full_name || "User";
+        } catch (e) {
+            console.error("Invalid token format", e);
+            this.logout();
+            return null;
+        }
+    },
+    getUserId() {
+        try {
+            const userData = getJWTToken();
+            return userData.sub; 
+        } catch (e) {
+            this.logout();
+            return null;
+        }
     }
 };
+
+export default Auth

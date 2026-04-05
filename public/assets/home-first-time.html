@@ -100,22 +100,25 @@
     quick exit
   </a>
   
-  <script src="../js/identity-display.js"></script>
   <script src="../js/journal-store.js"></script>
   <script>
     let selectedMood = null;
     let currentUserKey = 'anonymous';
     let isEditMode = false;
+
+    function resolveDisplayNameFromUser(user) {
+      if (!user) return '';
+      const meta = user.user_metadata || {};
+      const name = (meta.full_name || meta.name || user.email || '').trim();
+      return name.includes('@') ? name.split('@')[0] : name;
+    }
     
     window.addEventListener('load', () => {
       const params = new URLSearchParams(window.location.search);
       isEditMode = params.get('mode') === 'edit';
       updateModeButtons();
 
-      const cachedName = (window.IdentityDisplayName
-        && typeof window.IdentityDisplayName.readStoredDisplayName === 'function')
-        ? window.IdentityDisplayName.readStoredDisplayName()
-        : '';
+      const cachedName = localStorage.getItem('brightbridge_username') || '';
       setWelcomeName(cachedName);
 
       if (window.netlifyIdentity) {
@@ -123,13 +126,9 @@
         window.netlifyIdentity.init({ APIUrl: apiUrl });
 
         const syncFromUser = (user) => {
-          // Use shared resolver so this page matches login/dashboard fallback behavior.
-          const resolvedName = (window.IdentityDisplayName
-            && typeof window.IdentityDisplayName.syncStoredDisplayName === 'function')
-            ? window.IdentityDisplayName.syncStoredDisplayName(user)
-            : '';
-
+          const resolvedName = resolveDisplayNameFromUser(user);
           if (resolvedName) {
+            localStorage.setItem('brightbridge_username', resolvedName);
             setWelcomeName(resolvedName);
           }
 
@@ -235,7 +234,7 @@
         window.JournalStore.saveJournalEntry(currentUserKey, journalEntry, selectedMood);
       }
       
-      window.location.href = isEditMode ? 'daily-checkin.html' : 'home.html';
+      window.location.href = isEditMode ? 'daily-checkin.html' : '/test/home.html';
     }
 
     function handleLogout() {

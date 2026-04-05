@@ -9,16 +9,18 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="BrightBridge">
+   <meta name="mobile-web-app-capable" content="yes">
+
   <link rel="apple-touch-icon" href="assets/icons/icon-192.png">
   
   <title>BrightBridge - Welcome</title>
   
-  <link rel="stylesheet" href="./assets/styles.css">
-  <link rel = "stylesheet" href="./assets/css/loginStyles.css">
+  <link rel="stylesheet" href="/assets/styles.css">
+  <link rel = "stylesheet" href="/assets/css/loginStyles.css">
   
   <link rel="manifest" href="manifest.json">
+  <script src="/js/app.js" type="module"></script>
 
-  <script src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
 </head>
 <body class="gradient-bg full-height center-content">
   
@@ -60,7 +62,7 @@
       document.body.style.transition = 'opacity 0.3s ease';
       
       setTimeout(() => {
-        window.location.href = './test/login.html';
+        window.location.href = '/test/login.html';
       }, 300);
     }
     
@@ -68,6 +70,7 @@
       document.body.style.opacity = '1';
     });
   </script>
+
   
 </body>
 </html>
