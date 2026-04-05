@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="description" content="BrightBridge - Dashboard">
+  <meta name="theme-color" content="#5B4B8A">
+  
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="mobile-web-app-capable" content="yes">
+  
+  <title>BrightBridge - Dashboard</title>
+  
+  <link rel="stylesheet" href="/test/css/styles.css">
+  <link rel="stylesheet" href="/test/css/homeStyles.css">
+
+  <script src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
+  <script src="/js/app.js" type="module"></script>
+</head>
+<body class="full-height">
+  
+  <header class="app-header gradient-header">
+    <div class="container">
+      <div class="header-content">
+        <h1 class="text-white">BrightBridge</h1>
+        <p class="text-white" style="opacity: 0.9; font-size: var(--font-size-xs);">
+          Welcome back, <span id="user-display">User</span>
+        </p>
+
+        <button id="logout-btn" type="button">Log Out</button>
+      </div>
+    </div>
+  </header>
+  
+  <main class="container" style="flex: 1; padding-top: var(--spacing-lg); padding-bottom: 100px;">
+    
+    <section class="daily-checkin-card card fade-in">
+      <h2 style="font-size: var(--font-size-md); margin-bottom: var(--spacing-sm);">
+        Daily Check-In
+      </h2>
+      <p style="color: var(--dark-gray); margin-bottom: var(--spacing-md);">
+        How are you feeling today?
+      </p>
+      
+      <div class="mood-selector" style="justify-content: flex-start;">
+        <button class="mood-btn happy" onclick="quickMoodCheck('happy')" aria-label="Happy">
+          😊
+        </button>
+        <button class="mood-btn neutral" onclick="quickMoodCheck('neutral')" aria-label="Neutral">
+          😐
+        </button>
+        <button class="mood-btn sad" onclick="quickMoodCheck('sad')" aria-label="Sad">
+          ☹️
+        </button>
+      </div>
+    </section>
+    
+    <nav class="main-nav mt-lg" aria-label="Main navigation">
+      <ul class="nav-list">
+        
+        <li class="nav-item fade-in" style="animation-delay: 0.1s;">
+          <a href="/assets/grounding.html" class="nav-link">
+            <span class="nav-icon">🧘</span>
+            <span>Grounding Tools</span>
+          </a>
+        </li>
+        
+        <li class="nav-item fade-in" style="animation-delay: 0.2s;">
+          <a href="/assets/resources.html" class="nav-link">
+            <span class="nav-icon">📚</span>
+            <span>Resources</span>
+          </a>
+        </li>
+        
+        <li class="nav-item fade-in" style="animation-delay: 0.3s;">
+          <a href="/assets/home-first-time.html" class="nav-link">
+            <span class="nav-icon">✍️</span>
+            <span>Daily Check-In</span>
+          </a>
+        </li>
+        
+        <li class="nav-item fade-in" style="animation-delay: 0.4s;">
+          <a href="/assets/conflict.html" class="nav-link">
+            <span class="nav-icon">🤝</span>
+            <span>Conflict De-Escalation</span>
+          </a>
+        </li>
+        
+        <li class="nav-item fade-in" style="animation-delay: 0.5s;">
+          <a href="/assets/microskills.html" class="nav-link">
+            <span class="nav-icon">💬</span>
+            <span>Relationship Microskills</span>
+          </a>
+        </li>
+        
+      </ul>
+    </nav>
+    
+    <section class="info-section mt-lg">
+      <div class="card" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">
+        <h3 style="color: white; margin-bottom: var(--spacing-xs);">Need Help Right Now?</h3>
+        <p style="opacity: 0.95; font-size: var(--font-size-xs); margin-bottom: var(--spacing-sm);">
+          Tap the red HELP button anytime for immediate support and resources.
+        </p>
+
+        
+      </div>
+    </section>
+    
+  </main>
+  
+  <a href="/assets/help.html" class="help-fab pulse" aria-label="Get help now">
+    <span style="font-weight: 700; font-size: 18px;">HELP</span>
+  </a>
+  
+  <a href="https://www.weather.com" class="quick-exit" aria-label="Quick exit to weather website">
+    quick exit
+  </a>
+  
+</body>
+</html>

@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Netlify Static App</title>
+
+    <link rel="stylesheet" href="../assets/styles.css">
+    <!-- <link rel="stylesheet" href="../assets/css/loginStyles0.css"> -->
+
+    <script src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
+</head>
+<body class="gradient-bg full-height">
+    <div class="container">
+        <header>
+            <h1>Netlify Static App</h1>
+            <div id="auth-controls">
+                <!-- Auth buttons will be injected here -->
+            </div>
+        </header>
+
+        <main>
+            <!-- Login/Signup View -->
+            <div id="auth-view" class="view">
+                <h2>Welcome</h2>
+                <p>Please log in to access the application.</p>
+                <button id="login-btn" class="btn btn-primary">Log In / Sign Up</button>
+            </div>
+
+            <!-- App View (shown when logged in) -->
+            <div id="app-view" class="view hidden">
+                <div class="user-info">
+                    <h2>Welcome, <span id="user-name"></span>!</h2>
+                    <p>Email: <span id="user-email"></span></p>
+                </div>
+
+                <section class="data-section">
+                    <h3>Your Data</h3>
+                    
+                    <div class="form-group">
+                        <label for="data-input">Enter some data:</label>
+                        <input type="text" id="data-input" placeholder="Type something...">
+                        <button id="save-btn" class="btn btn-primary">Save Data</button>
+                    </div>
+
+                    <div class="saved-data">
+                        <h4>Saved Items:</h4>
+                        <div id="data-list" class="data-list">
+                            <!-- Saved items will appear here -->
+                        </div>
+                    </div>
+                </section>
+
+                <button id="logout-btn" class="btn btn-secondary">Log Out</button>
+            </div>
+        </main>
+    </div>
+
+    <script src="../js/auth.js"></script>
+    <script src="../js/data.js"></script>
+    <script src="../js/app.js"></script>
+</body>
+</html>
