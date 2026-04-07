@@ -240,8 +240,10 @@
       } else if (window.JournalStore && typeof window.JournalStore.saveJournalEntry === 'function') {
         window.JournalStore.saveJournalEntry(currentUserKey, journalEntry, selectedMood);
       }
+
+      localStorage.setItem('brightbridge_returning_user', 'true');
       
-      window.location.href = isEditMode ? '/assets/daily-checkin.html' : '/assets/home.html';
+      window.location.href = '/assets/home.html';
     }
 
     function handleLogout() {

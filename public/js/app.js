@@ -3,6 +3,48 @@ import Auth from '/js/auth.js'
 // Main app module - handles UI and orchestrates auth and data modules
 const App = {
     elements: {},
+
+    getTodayDateLabel() {
+        return new Date().toLocaleDateString();
+    },
+
+    resolveJournalUserKey(user) {
+        if (user && user.id) {
+            return String(user.id);
+        }
+
+        const storedName = (localStorage.getItem('brightbridge_username') || '').trim();
+        if (storedName) {
+            return `name:${storedName.toLowerCase()}`;
+        }
+
+        return 'anonymous';
+    },
+
+    hasTodayJournalEntry(user) {
+        const today = this.getTodayDateLabel();
+        const userKey = this.resolveJournalUserKey(user);
+
+        try {
+            const raw = localStorage.getItem('brightbridge_journal');
+            if (!raw) {
+                return false;
+            }
+
+            const entries = JSON.parse(raw);
+            if (!Array.isArray(entries)) {
+                return false;
+            }
+
+            return entries.some(entry => entry
+                && entry.userKey === userKey
+                && entry.date === today
+                && typeof entry.content === 'string'
+                && entry.content.trim().length > 0);
+        } catch (e) {
+            return false;
+        }
+    },
     
     init() {
         Auth.init()
@@ -67,8 +109,13 @@ const App = {
 
         console.log('the user exists');
         // IF THE USER EXISTS:
-        if(window.location.pathname.includes('login.html') || window.location.pathname.includes('index.html'))
-            window.location.assign('/assets/home.html');
+        if(window.location.pathname.includes('login.html') || window.location.pathname.includes('index.html')) {
+            const hasTodayEntry = this.hasTodayJournalEntry(user);
+            const destination = hasTodayEntry
+                ? '/assets/home.html'
+                : '/assets/home-first-time.html';
+            window.location.assign(destination);
+        }
 
 }
 };
