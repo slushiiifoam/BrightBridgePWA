@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="description" content="BrightBridge - Daily Check-In">
+  <meta name="theme-color" content="#5B4B8A">
+
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
+  <title>BrightBridge - Daily Check-In</title>
+
+  <link rel="stylesheet" href="styles.css">
+  <script src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
+</head>
+<body class="full-height">
+
+  <header class="app-header gradient-header">
+    <div class="container">
+      <div class="header-content">
+        <button class="back-button" onclick="goBack()" aria-label="Go to home page">
+          ← Home
+        </button>
+        <h1 class="text-white">Daily Check-In</h1>
+        <button type="button" class="logout-btn" onclick="handleLogout()" aria-label="Log out">
+          Log Out
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main class="container" style="flex: 1; padding-top: var(--spacing-lg); padding-bottom: var(--spacing-xl);">
+
+    <section class="card fade-in">
+      <h2 style="font-size: var(--font-size-md); margin-bottom: var(--spacing-sm);">Choose an option</h2>
+      <p style="color: var(--dark-gray); margin-bottom: var(--spacing-md);">
+        Start a new daily entry or review your recent journal history.
+      </p>
+
+      <a href="home-first-time.html?mode=edit" class="btn btn-primary btn-large" style="width: 100%; margin-bottom: var(--spacing-sm);">
+        Open/Edit Today's Entry
+      </a>
+    </section>
+
+    <section id="historyCard" class="card history-shell" aria-live="polite">
+      <h2 class="history-title">Last 10 Journal Entries</h2>
+      <div id="historyList"></div>
+    </section>
+
+  </main>
+
+  <a href="https://www.weather.com" class="quick-exit" aria-label="Quick exit to weather website">
+    quick exit
+  </a>
+
+  <a href="help.html" class="help-fab pulse" aria-label="Get help now">
+    <span style="font-weight: 700; font-size: 18px;">HELP</span>
+  </a>
+
+  <script src="../js/journal-store.js"></script>
+  <script>
+    let currentUserKey = 'anonymous';
+
+    function resolveDisplayNameFromUser(user) {
+      if (!user) return '';
+      const meta = user.user_metadata || {};
+      const name = (meta.full_name || meta.name || user.email || '').trim();
+      return name.includes('@') ? name.split('@')[0] : name;
+    }
+
+    window.addEventListener('load', () => {
+      if (window.netlifyIdentity) {
+        const apiUrl = `${window.location.origin}/.netlify/identity`;
+        window.netlifyIdentity.init({ APIUrl: apiUrl });
+
+        const syncFromUser = (user) => {
+          const name = resolveDisplayNameFromUser(user);
+          if (name) localStorage.setItem('brightbridge_username', name);
+
+          if (window.JournalStore && typeof window.JournalStore.resolveUserKey === 'function') {
+            currentUserKey = window.JournalStore.resolveUserKey(user);
+            renderHistory();
+          }
+        };
+
+        syncFromUser(window.netlifyIdentity.currentUser());
+        window.netlifyIdentity.on('init', syncFromUser);
+        window.netlifyIdentity.on('login', syncFromUser);
+      }
+
+      document.body.style.opacity = '1';
+      renderHistory();
+    });
+
+    function goBack() {
+      window.location.assign('/test/home.html');
+    }
+
+    function renderHistory() {
+      const historyList = document.getElementById('historyList');
+      const entries = (window.JournalStore && typeof window.JournalStore.getLastJournalEntries === 'function')
+        ? window.JournalStore.getLastJournalEntries(currentUserKey, 10)
+        : [];
+
+      if (!entries.length) {
+        historyList.innerHTML = `
+          <div class="entry-empty">
+            <p>No journal entries yet.</p>
+            <p>Your last 10 entries will appear here automatically.</p>
+          </div>
+        `;
+        return;
+      }
+
+      historyList.innerHTML = entries.map((entry) => {
+        const mood = entry.mood || 'none';
+        const moodEmoji = getMoodEmoji(mood);
+        const moodLabel = mood === 'none' ? 'Not selected' : capitalize(mood);
+
+        return `
+          <article class="journal-entry-card mood-${mood}">
+            <div class="entry-top-row">
+              <p class="entry-date">${entry.date}</p>
+              <div class="entry-mood-badge" aria-label="Mood ${moodLabel}">
+                <span class="entry-mood-emoji">${moodEmoji}</span>
+                <span class="entry-mood-label">${moodLabel}</span>
+              </div>
+            </div>
+            <p class="entry-content">${escapeHtml(entry.content)}</p>
+          </article>
+        `;
+      }).join('');
+    }
+
+    function getMoodEmoji(mood) {
+      if (mood === 'happy') return '😊';
+      if (mood === 'neutral') return '😐';
+      if (mood === 'sad') return '☹️';
+      return '📝';
+    }
+
+    function capitalize(value) {
+      if (!value) {
+        return '';
+      }
+
+      return value.charAt(0).toUpperCase() + value.slice(1);
+    }
+
+    function escapeHtml(text) {
+      const div = document.createElement('div');
+      div.textContent = text || '';
+      return div.innerHTML;
+    }
+
+    function handleLogout() {
+      const redirectToLogin = () => {
+        window.location.assign('/test/login.html');
+      };
+
+      if (!window.netlifyIdentity) {
+        redirectToLogin();
+        return;
+      }
+
+      let redirected = false;
+      const safeRedirect = () => {
+        if (redirected) {
+          return;
+        }
+
+        redirected = true;
+        redirectToLogin();
+      };
+
+      window.netlifyIdentity.on('logout', safeRedirect);
+
+      const result = window.netlifyIdentity.logout();
+      if (result && typeof result.then === 'function') {
+        result.then(safeRedirect).catch(safeRedirect);
+      }
+    }
+  </script>
+
+  <style>
+    body {
+      opacity: 0;
+      transition: opacity 0.5s ease;
+      background-color: var(--light-gray);
+    }
+
+    .app-header {
+      padding: var(--spacing-md) 0;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .header-content {
+      position: relative;
+      min-height: 52px;
+    }
+
+    .header-content h1 {
+      margin: 0;
+      text-align: center;
+      padding: 0 96px;
+      font-size: var(--font-size-lg);
+    }
+
+    .back-button {
+      background: rgba(255, 255, 255, 0.2);
+      border: none;
+      color: var(--white);
+      font-size: var(--font-size-sm);
+      padding: var(--spacing-xs) var(--spacing-sm);
+      cursor: pointer;
+      position: absolute;
+      left: 0;
+      top: 50%;
+      transform: translateY(-50%);
+      border-radius: var(--radius-sm);
+      font-weight: 600;
+      transition: all var(--transition-fast);
+    }
+
+    .back-button:hover {
+      background: rgba(255, 255, 255, 0.3);
+    }
+
+    .logout-btn {
+      position: absolute;
+      top: 50%;
+      right: 0;
+      transform: translateY(-50%);
+      border: 1px solid rgba(255, 255, 255, 0.75);
+      background: rgba(255, 255, 255, 0.16);
+      color: var(--white);
+      border-radius: var(--radius-sm);
+      padding: 6px 10px;
+      font-size: var(--font-size-xs);
+      cursor: pointer;
+      transition: background-color var(--transition-fast), transform var(--transition-fast);
+    }
+
+    .logout-btn:hover {
+      background: rgba(255, 255, 255, 0.28);
+      transform: translateY(calc(-50% - 1px));
+    }
+
+    .history-shell {
+      background: linear-gradient(165deg, #ffffff 0%, #f7f8ff 100%);
+      border: 1px solid #eceeff;
+      box-shadow: 0 14px 30px rgba(41, 50, 96, 0.08);
+    }
+
+    .history-title {
+      font-size: clamp(1.2rem, 2.2vw, 1.45rem);
+      margin-bottom: var(--spacing-md);
+    }
+
+    .entry-empty {
+      background: #ffffff;
+      border: 1px dashed #d7dbf0;
+      border-radius: var(--radius-md);
+      padding: var(--spacing-md);
+      color: var(--dark-gray);
+      text-align: center;
+    }
+
+    .entry-empty p {
+      margin: 0;
+    }
+
+    .entry-empty p + p {
+      margin-top: var(--spacing-xs);
+      font-size: var(--font-size-xs);
+    }
+
+    .journal-entry-card {
+      background: #ffffff;
+      border-radius: var(--radius-md);
+      border: 1px solid #eceff8;
+      margin-bottom: var(--spacing-md);
+      padding: var(--spacing-md);
+      box-shadow: 0 6px 16px rgba(43, 51, 95, 0.08);
+    }
+
+    .journal-entry-card:last-child {
+      margin-bottom: 0;
+    }
+
+    .entry-top-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: var(--spacing-sm);
+      margin-bottom: var(--spacing-sm);
+    }
+
+    .entry-date {
+      margin: 0;
+      color: #5e647c;
+      font-size: var(--font-size-xs);
+      font-weight: 600;
+    }
+
+    .entry-mood-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 10px;
+      border-radius: 999px;
+      font-weight: 700;
+      font-size: 13px;
+      color: #1f2746;
+      background: #eaf0ff;
+    }
+
+    .entry-mood-emoji {
+      font-size: 20px;
+      line-height: 1;
+    }
+
+    .entry-content {
+      margin: 0;
+      white-space: pre-wrap;
+      font-size: var(--font-size-sm);
+      line-height: 1.7;
+      color: #20253b;
+    }
+
+    .mood-happy .entry-mood-badge {
+      background: #d9f5de;
+      color: #1f5f2d;
+    }
+
+    .mood-neutral .entry-mood-badge {
+      background: #fff4d5;
+      color: #6b5600;
+    }
+
+    .mood-sad .entry-mood-badge {
+      background: #ffe2e2;
+      color: #7e1f1f;
+    }
+
+    .mood-none .entry-mood-badge {
+      background: #edf0f8;
+      color: #425070;
+    }
+
+    @media (max-width: 480px) {
+      .header-content h1 {
+        font-size: var(--font-size-md);
+        padding: 0 82px;
+      }
+
+      .back-button,
+      .logout-btn {
+        padding: 6px 8px;
+        font-size: var(--font-size-xs);
+      }
+
+      .entry-top-row {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+
+      .entry-content {
+        font-size: 15px;
+      }
+    }
+  </style>
+
+</body>
+</html>
