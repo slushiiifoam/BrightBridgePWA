@@ -23,7 +23,7 @@
       <button id="editBackBtn" type="button" class="back-btn hidden" onclick="goBackToDailyCheckin()" aria-label="Back to diary entry page">
         ← Diary Entry Page
       </button>
-      <button type="button" class="logout-btn" onclick="handleLogout()" aria-label="Log out">
+      <button id="logoutBtn" type="button" class="logout-btn" onclick="handleLogout()" aria-label="Log out">
         Log Out
       </button>
     </div>
@@ -172,8 +172,9 @@
       const firstTimeBtn = document.getElementById('firstTimeSubmitBtn');
       const editBtn = document.getElementById('editSubmitBtn');
       const editBackBtn = document.getElementById('editBackBtn');
+      const logoutBtn = document.getElementById('logoutBtn');
 
-      if (!firstTimeBtn || !editBtn || !editBackBtn) {
+      if (!firstTimeBtn || !editBtn || !editBackBtn || !logoutBtn) {
         return;
       }
 
@@ -181,10 +182,12 @@
         firstTimeBtn.classList.add('hidden');
         editBtn.classList.remove('hidden');
         editBackBtn.classList.remove('hidden');
+        logoutBtn.classList.add('hidden');
       } else {
         editBtn.classList.add('hidden');
         firstTimeBtn.classList.remove('hidden');
         editBackBtn.classList.add('hidden');
+        logoutBtn.classList.remove('hidden');
       }
     }
 
@@ -253,7 +256,7 @@
 
       localStorage.setItem('brightbridge_returning_user', 'true');
       
-      window.location.href = '/assets/home.html';
+      window.location.href = isEditMode ? '/assets/daily-checkin.html' : '/assets/home.html';
     }
 
     function handleLogout() {

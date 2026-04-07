@@ -24,9 +24,6 @@
           ← Home
         </button>
         <h1 class="text-white">Daily Check-In</h1>
-        <button type="button" class="logout-btn" onclick="handleLogout()" aria-label="Log out">
-          Log Out
-        </button>
       </div>
     </div>
   </header>
@@ -171,33 +168,6 @@
       return div.innerHTML;
     }
 
-    function handleLogout() {
-      const redirectToLogin = () => {
-        window.location.assign('/assets/login.html');
-      };
-
-      if (!window.netlifyIdentity) {
-        redirectToLogin();
-        return;
-      }
-
-      let redirected = false;
-      const safeRedirect = () => {
-        if (redirected) {
-          return;
-        }
-
-        redirected = true;
-        redirectToLogin();
-      };
-
-      window.netlifyIdentity.on('logout', safeRedirect);
-
-      const result = window.netlifyIdentity.logout();
-      if (result && typeof result.then === 'function') {
-        result.then(safeRedirect).catch(safeRedirect);
-      }
-    }
   </script>
 
   <style>
@@ -220,7 +190,7 @@
     .header-content h1 {
       margin: 0;
       text-align: center;
-      padding: 0 96px;
+      padding: 0 32px;
       font-size: var(--font-size-lg);
     }
 
@@ -242,26 +212,6 @@
 
     .back-button:hover {
       background: rgba(255, 255, 255, 0.3);
-    }
-
-    .logout-btn {
-      position: absolute;
-      top: 50%;
-      right: 0;
-      transform: translateY(-50%);
-      border: 1px solid rgba(255, 255, 255, 0.75);
-      background: rgba(255, 255, 255, 0.16);
-      color: var(--white);
-      border-radius: var(--radius-sm);
-      padding: 6px 10px;
-      font-size: var(--font-size-xs);
-      cursor: pointer;
-      transition: background-color var(--transition-fast), transform var(--transition-fast);
-    }
-
-    .logout-btn:hover {
-      background: rgba(255, 255, 255, 0.28);
-      transform: translateY(calc(-50% - 1px));
     }
 
     .history-shell {
@@ -369,11 +319,10 @@
     @media (max-width: 480px) {
       .header-content h1 {
         font-size: var(--font-size-md);
-        padding: 0 82px;
+        padding: 0 24px;
       }
 
-      .back-button,
-      .logout-btn {
+      .back-button {
         padding: 6px 8px;
         font-size: var(--font-size-xs);
       }
