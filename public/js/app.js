@@ -3,48 +3,6 @@ import Auth from '/js/auth.js'
 // Main app module - handles UI and orchestrates auth and data modules
 const App = {
     elements: {},
-
-    getTodayDateLabel() {
-        return new Date().toLocaleDateString();
-    },
-
-    resolveJournalUserKey(user) {
-        if (user && user.id) {
-            return String(user.id);
-        }
-
-        const storedName = (localStorage.getItem('brightbridge_username') || '').trim();
-        if (storedName) {
-            return `name:${storedName.toLowerCase()}`;
-        }
-
-        return 'anonymous';
-    },
-
-    hasTodayJournalEntry(user) {
-        const today = this.getTodayDateLabel();
-        const userKey = this.resolveJournalUserKey(user);
-
-        try {
-            const raw = localStorage.getItem('brightbridge_journal');
-            if (!raw) {
-                return false;
-            }
-
-            const entries = JSON.parse(raw);
-            if (!Array.isArray(entries)) {
-                return false;
-            }
-
-            return entries.some(entry => entry
-                && entry.userKey === userKey
-                && entry.date === today
-                && typeof entry.content === 'string'
-                && entry.content.trim().length > 0);
-        } catch (e) {
-            return false;
-        }
-    },
     
     init() {
         Auth.init()
@@ -108,12 +66,17 @@ const App = {
         }
 
         console.log('the user exists');
-        // IF THE USER EXISTS:
+        // IF THE USER EXISTS and is on login/index, redirect appropriately:
+        // First-time users go to home-first-time for onboarding.
+        // Returning users go straight to the standard dashboard.
         if(window.location.pathname.includes('login.html') || window.location.pathname.includes('index.html')) {
-            const hasTodayEntry = this.hasTodayJournalEntry(user);
-            const destination = hasTodayEntry
+            const isReturningUser = localStorage.getItem('brightbridge_returning_user') === 'true';
+            const destination = isReturningUser
                 ? '/assets/home.html'
                 : '/assets/home-first-time.html';
+            if (!isReturningUser) {
+                localStorage.setItem('brightbridge_returning_user', 'true');
+            }
             window.location.assign(destination);
         }
 
