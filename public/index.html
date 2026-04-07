@@ -9,14 +9,12 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="BrightBridge">
-   <meta name="mobile-web-app-capable" content="yes">
-
-  <link rel="apple-touch-icon" href="assets/icons/icon-192.png">
+  <meta name="mobile-web-app-capable" content="yes">
+  <link rel="apple-touch-icon" href="/assets/icons/icon-192.png">
   
   <title>BrightBridge - Welcome</title>
   
-  <link rel="stylesheet" href="/assets/styles.css">
-  <link rel="stylesheet" href="/assets/css/landingStyles.css">
+  <link rel="stylesheet" href="/assets/css/styles.css">
   
   <link rel="manifest" href="/manifest.json">
   <script src="/js/app.js" type="module"></script>
@@ -70,7 +68,65 @@
       document.body.style.opacity = '1';
     });
   </script>
-
+  
+  <style>
+    .app-icon {
+      margin-bottom: var(--spacing-xl);
+    }
+    
+    .icon-container {
+      background: var(--white);
+      border-radius: var(--radius-lg);
+      padding: var(--spacing-sm);
+      box-shadow: var(--shadow-lg);
+      animation: pulse 3s infinite;
+    }
+    
+    .app-logo {
+      display: block;
+    }
+    
+    .tap-enter-btn {
+      background: transparent;
+      border: 3px solid var(--white);
+      color: var(--white);
+      padding: var(--spacing-md) var(--spacing-xl);
+      font-size: var(--font-size-md);
+      font-weight: 600;
+      border-radius: var(--radius-lg);
+      cursor: pointer;
+      transition: all var(--transition-normal);
+      min-height: 56px;
+      animation-delay: 0.3s;
+    }
+    
+    .tap-enter-btn:hover {
+      background: var(--white);
+      color: var(--primary-purple);
+      transform: scale(1.05);
+    }
+    
+    .tap-enter-btn:active {
+      transform: scale(0.98);
+    }
+    
+    .tap-text {
+      font-size: var(--font-size-md);
+      letter-spacing: 1px;
+    }
+    
+    body {
+      opacity: 0;
+      transition: opacity 0.5s ease;
+    }
+    
+    @media (max-width: 480px) {
+      .app-logo {
+        width: 160px;
+        height: 160px;
+      }
+    }
+  </style>
   
 </body>
 </html>
