@@ -56,7 +56,7 @@ const App = {
             // Only redirect if we are NOT already on the login page{
 
             if(!window.location.pathname.includes('login.html')){
-                window.location.assign('/test/login.html');
+                window.location.assign('/assets/login.html');
                 console.log('redirecting to login page');
                 return;
             }
@@ -68,7 +68,7 @@ const App = {
         console.log('the user exists');
         // IF THE USER EXISTS:
         if(window.location.pathname.includes('login.html') || window.location.pathname.includes('index.html'))
-            window.location.assign('/test/home.html');
+            window.location.assign('/assets/home.html');
 
 }
 };

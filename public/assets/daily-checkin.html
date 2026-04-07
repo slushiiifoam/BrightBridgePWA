@@ -11,7 +11,8 @@
 
   <title>BrightBridge - Daily Check-In</title>
 
-  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="/assets/styles.css">
+  <link rel="stylesheet" href="/assets/css/homeStyles.css">
   <script src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
 </head>
 <body class="full-height">
@@ -38,7 +39,7 @@
         Start a new daily entry or review your recent journal history.
       </p>
 
-      <a href="home-first-time.html?mode=edit" class="btn btn-primary btn-large" style="width: 100%; margin-bottom: var(--spacing-sm);">
+      <a href="/assets/home-first-time.html?mode=edit" class="btn btn-primary btn-large" style="width: 100%; margin-bottom: var(--spacing-sm);">
         Open/Edit Today's Entry
       </a>
     </section>
@@ -54,11 +55,11 @@
     quick exit
   </a>
 
-  <a href="help.html" class="help-fab pulse" aria-label="Get help now">
+  <a href="/assets/help.html" class="help-fab pulse" aria-label="Get help now">
     <span style="font-weight: 700; font-size: 18px;">HELP</span>
   </a>
 
-  <script src="../js/journal-store.js"></script>
+  <script src="/js/journal-store.js"></script>
   <script>
     let currentUserKey = 'anonymous';
 
@@ -74,6 +75,12 @@
         const apiUrl = `${window.location.origin}/.netlify/identity`;
         window.netlifyIdentity.init({ APIUrl: apiUrl });
 
+        const currentUser = window.netlifyIdentity.currentUser();
+        if (!currentUser) {
+          window.location.assign('/assets/login.html');
+          return;
+        }
+
         const syncFromUser = (user) => {
           const name = resolveDisplayNameFromUser(user);
           if (name) localStorage.setItem('brightbridge_username', name);
@@ -84,7 +91,7 @@
           }
         };
 
-        syncFromUser(window.netlifyIdentity.currentUser());
+        syncFromUser(currentUser);
         window.netlifyIdentity.on('init', syncFromUser);
         window.netlifyIdentity.on('login', syncFromUser);
       }
@@ -94,7 +101,7 @@
     });
 
     function goBack() {
-      window.location.assign('/test/home.html');
+      window.location.assign('/assets/home.html');
     }
 
     function renderHistory() {
@@ -156,7 +163,7 @@
 
     function handleLogout() {
       const redirectToLogin = () => {
-        window.location.assign('/test/login.html');
+        window.location.assign('/assets/login.html');
       };
 
       if (!window.netlifyIdentity) {

@@ -12,7 +12,8 @@
   
   <title>BrightBridge - Home</title>
   
-  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="/assets/styles.css">
+  <link rel="stylesheet" href="/assets/css/homeStyles.css">
   <script src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
 </head>
 <body class="full-height">
@@ -100,7 +101,7 @@
     quick exit
   </a>
   
-  <script src="../js/journal-store.js"></script>
+  <script src="/js/journal-store.js"></script>
   <script>
     let selectedMood = null;
     let currentUserKey = 'anonymous';
@@ -125,6 +126,12 @@
         const apiUrl = `${window.location.origin}/.netlify/identity`;
         window.netlifyIdentity.init({ APIUrl: apiUrl });
 
+        const currentUser = window.netlifyIdentity.currentUser();
+        if (!currentUser) {
+          window.location.assign('/assets/login.html');
+          return;
+        }
+
         const syncFromUser = (user) => {
           const resolvedName = resolveDisplayNameFromUser(user);
           if (resolvedName) {
@@ -138,7 +145,7 @@
           }
         };
 
-        syncFromUser(window.netlifyIdentity.currentUser());
+        syncFromUser(currentUser);
         window.netlifyIdentity.on('init', syncFromUser);
         window.netlifyIdentity.on('login', syncFromUser);
       }
@@ -172,7 +179,7 @@
     }
 
     function goBackToDailyCheckin() {
-      window.location.assign('daily-checkin.html');
+      window.location.assign('/assets/daily-checkin.html');
     }
     
     function loadTodayEntry() {
@@ -234,12 +241,12 @@
         window.JournalStore.saveJournalEntry(currentUserKey, journalEntry, selectedMood);
       }
       
-      window.location.href = isEditMode ? 'daily-checkin.html' : '/test/home.html';
+      window.location.href = isEditMode ? '/assets/daily-checkin.html' : '/assets/home.html';
     }
 
     function handleLogout() {
       const redirectToLogin = () => {
-        window.location.assign('/test/login.html');
+        window.location.assign('/assets/login.html');
       };
 
       if (!window.netlifyIdentity) {
