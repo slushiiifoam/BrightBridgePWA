@@ -75,13 +75,16 @@
         const apiUrl = `${window.location.origin}/.netlify/identity`;
         window.netlifyIdentity.init({ APIUrl: apiUrl });
 
-        const currentUser = window.netlifyIdentity.currentUser();
-        if (!currentUser) {
-          window.location.assign('/assets/login.html');
-          return;
-        }
+        let didResolveInit = false;
 
         const syncFromUser = (user) => {
+          if (!user) {
+            if (didResolveInit) {
+              window.location.assign('/assets/login.html');
+            }
+            return;
+          }
+
           const name = resolveDisplayNameFromUser(user);
           if (name) localStorage.setItem('brightbridge_username', name);
 
@@ -91,8 +94,15 @@
           }
         };
 
-        syncFromUser(currentUser);
-        window.netlifyIdentity.on('init', syncFromUser);
+        const currentUser = window.netlifyIdentity.currentUser();
+        if (currentUser) {
+          syncFromUser(currentUser);
+        }
+
+        window.netlifyIdentity.on('init', (user) => {
+          didResolveInit = true;
+          syncFromUser(user);
+        });
         window.netlifyIdentity.on('login', syncFromUser);
       }
 
