@@ -72,7 +72,7 @@ const Auth = {
             // 3. DO THE REDIRECT IMMEDIATELY.
             // This is the line that actually "moves" the user.
             console.log("Local cleanup done. Forcing redirect to login...");
-            window.location.assign('/test/login.html');
+            window.location.assign('/assets/login.html');
         }
     },
     

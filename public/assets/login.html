@@ -11,49 +11,33 @@
   
   <title>BrightBridge - Login</title>
   
-  <link rel="stylesheet" href="styles.css">
-  <link rel="stylesheet" href="./css/loginStyles0.css">
-  
+  <link rel="stylesheet" href="/assets/css/styles.css">
+  <link rel="stylesheet" href="/assets/css/loginStyles.css">
+
+  <script src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
+  <script src="/js/app.js" type="module"></script>
+
 </head>
 <body class="gradient-bg full-height">
   
   <main class="container center-content" style="flex: 1; justify-content: center;">
     
     <div class="login-card fade-in">
-      <h1 class="text-center text-white mb-lg">Log In / Sign Up</h1>
-      <form id="loginForm" class="login-form" onsubmit="handleLogin(event)">
-        <div class="form-group">
-          <label for="username" class="sr-only">Username</label>
-          <input 
-            type="text" 
-            id="username" 
-            name="username" 
-            class="form-input" 
-            placeholder="username"
-            required
-            autocomplete="username"
-            aria-label="Enter your username"
-          >
-        </div>
-        <div class="form-group">
-          <label for="password" class="sr-only">Password</label>
-          <input 
-            type="password" 
-            id="password" 
-            name="password" 
-            class="form-input" 
-            placeholder="password"
-            required
-            autocomplete="current-password"
-            aria-label="Enter your password"
-          >
-        </div>
-        
-        <button type="submit" class="btn btn-light btn-large" style="width: 100%;">
-          Continue
-        </button>
-        
-      </form>
+      <h1 class="text-center text-white mb-lg">Welcome to BrightBridge!</h1>
+
+      <div class="container">
+        <header>
+          <div id="auth-controls">
+            <!-- Auth buttons will be injected here -->
+          </div>
+        </header>
+
+        <main>
+          <div id="auth-view" class="view">
+            <button id="login-btn" class="btn btn-primary">Log In / Sign Up</button>
+          </div>
+        </main>
+      </div>
       
       <div class="login-options mt-md">
         <p class="text-center text-white" style="font-size: var(--font-size-xs);">
@@ -70,35 +54,10 @@
   </a>
   
   <script>
-    function handleLogin(event) {
-      event.preventDefault();
-      
-      const username = document.getElementById('username').value;
-      const password = document.getElementById('password').value;
-      
-      if (username && password) {
-        localStorage.setItem('brightbridge_username', username);
-        
-        const isFirstTime = !localStorage.getItem('brightbridge_returning_user');
-        
-        if (isFirstTime) {
-          localStorage.setItem('brightbridge_returning_user', 'true');
-          
-          window.location.href = 'home-first-time.html';
-        } else {
-          window.location.href = 'home.html';
-        }
-      }
-    }
-    
     window.addEventListener('load', () => {
       document.body.style.opacity = '1';
     });
   </script>
 
-  <script src="./js/auth.js"></script>
-  <script src="./js/data.js"></script>
-  <script src="./js/app.js"></script>
-  
 </body>
 </html>

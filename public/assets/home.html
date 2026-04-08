@@ -8,10 +8,15 @@
   
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="mobile-web-app-capable" content="yes">
   
   <title>BrightBridge - Dashboard</title>
   
-  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="/assets/css/styles.css">
+  <link rel="stylesheet" href="/assets/css/homeStyles.css">
+
+  <script src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
+  <script src="/js/app.js" type="module"></script>
 </head>
 <body class="full-height">
   
@@ -20,8 +25,10 @@
       <div class="header-content">
         <h1 class="text-white">BrightBridge</h1>
         <p class="text-white" style="opacity: 0.9; font-size: var(--font-size-xs);">
-          Welcome back, <span id="headerUserName">User</span>
+          Welcome back, <span id="user-display">User</span>
         </p>
+
+        <button id="logout-btn" type="button">Log Out</button>
       </div>
     </div>
   </header>
@@ -53,35 +60,35 @@
       <ul class="nav-list">
         
         <li class="nav-item fade-in" style="animation-delay: 0.1s;">
-          <a href="grounding.html" class="nav-link">
+          <a href="/assets/grounding.html" class="nav-link">
             <span class="nav-icon">🧘</span>
             <span>Grounding Tools</span>
           </a>
         </li>
         
         <li class="nav-item fade-in" style="animation-delay: 0.2s;">
-          <a href="./resources.html" class="nav-link">
+          <a href="/assets/resources.html" class="nav-link">
             <span class="nav-icon">📚</span>
             <span>Resources</span>
           </a>
         </li>
         
         <li class="nav-item fade-in" style="animation-delay: 0.3s;">
-          <a href="home-first-time.html" class="nav-link">
+          <a href="/assets/daily-checkin.html" class="nav-link">
             <span class="nav-icon">✍️</span>
             <span>Daily Check-In</span>
           </a>
         </li>
         
         <li class="nav-item fade-in" style="animation-delay: 0.4s;">
-          <a href="conflict.html" class="nav-link">
+          <a href="/assets/conflict.html" class="nav-link">
             <span class="nav-icon">🤝</span>
             <span>Conflict De-Escalation</span>
           </a>
         </li>
         
         <li class="nav-item fade-in" style="animation-delay: 0.5s;">
-          <a href="microskills.html" class="nav-link">
+          <a href="/assets/microskills.html" class="nav-link">
             <span class="nav-icon">💬</span>
             <span>Relationship Microskills</span>
           </a>
@@ -96,12 +103,14 @@
         <p style="opacity: 0.95; font-size: var(--font-size-xs); margin-bottom: var(--spacing-sm);">
           Tap the red HELP button anytime for immediate support and resources.
         </p>
+
+        
       </div>
     </section>
     
   </main>
   
-  <a href="help.html" class="help-fab pulse" aria-label="Get help now">
+  <a href="/assets/help.html" class="help-fab pulse" aria-label="Get help now">
     <span style="font-weight: 700; font-size: 18px;">HELP</span>
   </a>
   
@@ -112,7 +121,7 @@
   <script>
     window.addEventListener('load', () => {
       const username = localStorage.getItem('brightbridge_username') || 'User';
-      document.getElementById('headerUserName').textContent = username;
+      document.getElementById('user-display').textContent = username;
       document.body.style.opacity = '1';
     });
     

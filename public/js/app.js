@@ -56,7 +56,7 @@ const App = {
             // Only redirect if we are NOT already on the login page{
 
             if(!window.location.pathname.includes('login.html')){
-                window.location.assign('/test/login.html');
+                window.location.assign('/assets/login.html');
                 console.log('redirecting to login page');
                 return;
             }
@@ -66,9 +66,19 @@ const App = {
         }
 
         console.log('the user exists');
-        // IF THE USER EXISTS:
-        if(window.location.pathname.includes('login.html') || window.location.pathname.includes('index.html'))
-            window.location.assign('/test/home.html');
+        // IF THE USER EXISTS and is on login/index, redirect appropriately:
+        // First-time users go to home-first-time for onboarding.
+        // Returning users go straight to the standard dashboard.
+        if(window.location.pathname.includes('login.html') || window.location.pathname.includes('index.html')) {
+            const isReturningUser = localStorage.getItem('brightbridge_returning_user') === 'true';
+            const destination = isReturningUser
+                ? '/assets/home.html'
+                : '/assets/home-first-time.html';
+            if (!isReturningUser) {
+                localStorage.setItem('brightbridge_returning_user', 'true');
+            }
+            window.location.assign(destination);
+        }
 
 }
 };
