@@ -101,89 +101,28 @@
     quick exit
   </a>
   
+  <script src="/js/identity-display.js"></script>
   <script src="/js/journal-store.js"></script>
   <script>
     let selectedMood = null;
     let currentUserKey = 'anonymous';
     let isEditMode = false;
-
-    function decodeJwtClaims(tokenValue) {
-      if (!tokenValue || typeof tokenValue !== 'string') {
-        return {};
-      }
-
-      const parts = tokenValue.split('.');
-      if (parts.length < 2) {
-        return {};
-      }
-
-      try {
-        const base64 = parts[1].replace(/-/g, '+').replace(/_/g, '/');
-        const padding = '='.repeat((4 - (base64.length % 4)) % 4);
-        return JSON.parse(atob(base64 + padding));
-      } catch (error) {
-        return {};
-      }
-    }
-
-    function resolveDisplayNameFromUser(user) {
-      if (!user) return '';
-
-      const meta = user.user_metadata || {};
-      const token = user.token || {};
-      const tokenMeta = token.user_metadata || {};
-      const claims = decodeJwtClaims(token.access_token || token.id_token || '');
-      const claimMeta = claims.user_metadata || {};
-
-      const candidates = [
-        meta.full_name,
-        meta.name,
-        tokenMeta.full_name,
-        tokenMeta.name,
-        claimMeta.full_name,
-        claimMeta.name,
-        claims.name,
-        user.email,
-        token.email,
-        claims.email
-      ];
-
-      for (const value of candidates) {
-        const trimmed = (value || '').trim();
-        if (!trimmed) {
-          continue;
-        }
-
-        return trimmed.includes('@') ? trimmed.split('@')[0] : trimmed;
-      }
-
-      return '';
-    }
-
-    function resolveDisplayNameFromStoredUser() {
-      try {
-        const raw = localStorage.getItem('brightbridge.user');
-        if (!raw) {
-          return '';
-        }
-
-        const parsed = JSON.parse(raw);
-        return resolveDisplayNameFromUser(parsed);
-      } catch (error) {
-        return '';
-      }
-    }
     
     window.addEventListener('load', () => {
+      const identityDisplay = window.IdentityDisplayName || {};
       const params = new URLSearchParams(window.location.search);
       isEditMode = params.get('mode') === 'edit';
       updateModeButtons();
 
-      const cachedName = (localStorage.getItem('brightbridge_username') || '').trim();
-      if (cachedName && cachedName.toLowerCase() !== 'user') {
+      const cachedName = (typeof identityDisplay.getCachedDisplayName === 'function')
+        ? identityDisplay.getCachedDisplayName()
+        : '';
+      if (cachedName) {
         setWelcomeName(cachedName);
       } else {
-        const storedName = resolveDisplayNameFromStoredUser();
+        const storedName = (typeof identityDisplay.resolveDisplayNameFromStoredUser === 'function')
+          ? identityDisplay.resolveDisplayNameFromStoredUser()
+          : '';
         if (storedName) {
           localStorage.setItem('brightbridge_username', storedName);
           setWelcomeName(storedName);
@@ -204,9 +143,10 @@
             return;
           }
 
-          const resolvedName = resolveDisplayNameFromUser(user) || resolveDisplayNameFromStoredUser();
+          const resolvedName = (typeof identityDisplay.syncStoredDisplayName === 'function')
+            ? identityDisplay.syncStoredDisplayName(user)
+            : '';
           if (resolvedName) {
-            localStorage.setItem('brightbridge_username', resolvedName);
             setWelcomeName(resolvedName);
           }
 

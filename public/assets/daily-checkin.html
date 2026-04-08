@@ -56,64 +56,13 @@
     <span style="font-weight: 700; font-size: 18px;">HELP</span>
   </a>
 
+  <script src="/js/identity-display.js"></script>
   <script src="/js/journal-store.js"></script>
   <script>
     let currentUserKey = 'anonymous';
 
-    function decodeJwtClaims(tokenValue) {
-      if (!tokenValue || typeof tokenValue !== 'string') {
-        return {};
-      }
-
-      const parts = tokenValue.split('.');
-      if (parts.length < 2) {
-        return {};
-      }
-
-      try {
-        const base64 = parts[1].replace(/-/g, '+').replace(/_/g, '/');
-        const padding = '='.repeat((4 - (base64.length % 4)) % 4);
-        return JSON.parse(atob(base64 + padding));
-      } catch (error) {
-        return {};
-      }
-    }
-
-    function resolveDisplayNameFromUser(user) {
-      if (!user) return '';
-
-      const meta = user.user_metadata || {};
-      const token = user.token || {};
-      const tokenMeta = token.user_metadata || {};
-      const claims = decodeJwtClaims(token.access_token || token.id_token || '');
-      const claimMeta = claims.user_metadata || {};
-
-      const candidates = [
-        meta.full_name,
-        meta.name,
-        tokenMeta.full_name,
-        tokenMeta.name,
-        claimMeta.full_name,
-        claimMeta.name,
-        claims.name,
-        user.email,
-        token.email,
-        claims.email
-      ];
-
-      for (const value of candidates) {
-        const trimmed = (value || '').trim();
-        if (!trimmed) {
-          continue;
-        }
-
-        return trimmed.includes('@') ? trimmed.split('@')[0] : trimmed;
-      }
-
-      return '';
-    }
-
     window.addEventListener('load', () => {
+      const identityDisplay = window.IdentityDisplayName || {};
       if (window.netlifyIdentity) {
         const apiUrl = `${window.location.origin}/.netlify/identity`;
         window.netlifyIdentity.init({ APIUrl: apiUrl });
@@ -128,8 +77,9 @@
             return;
           }
 
-          const name = resolveDisplayNameFromUser(user);
-          if (name) localStorage.setItem('brightbridge_username', name);
+          const name = (typeof identityDisplay.syncStoredDisplayName === 'function')
+            ? identityDisplay.syncStoredDisplayName(user)
+            : '';
 
           if (window.JournalStore && typeof window.JournalStore.resolveUserKey === 'function') {
             currentUserKey = window.JournalStore.resolveUserKey(user);
