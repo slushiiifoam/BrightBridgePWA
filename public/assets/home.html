@@ -118,10 +118,38 @@
     quick exit
   </a>
   
+  <script src="/js/identity-display.js"></script>
   <script>
     window.addEventListener('load', () => {
-      const username = localStorage.getItem('brightbridge_username') || 'User';
-      document.getElementById('user-display').textContent = username;
+      const identityDisplay = window.IdentityDisplayName || {};
+      const userDisplay = document.getElementById('user-display');
+      const cachedName = (typeof identityDisplay.getCachedDisplayName === 'function')
+        ? identityDisplay.getCachedDisplayName()
+        : '';
+      if (cachedName) {
+        userDisplay.textContent = cachedName;
+      }
+
+      if (window.netlifyIdentity) {
+        const apiUrl = `${window.location.origin}/.netlify/identity`;
+        window.netlifyIdentity.init({ APIUrl: apiUrl });
+
+        const syncFromUser = (user) => {
+          const resolvedName = (typeof identityDisplay.syncStoredDisplayName === 'function')
+            ? identityDisplay.syncStoredDisplayName(user)
+            : '';
+          if (!resolvedName) {
+            return;
+          }
+
+          userDisplay.textContent = resolvedName;
+        };
+
+        syncFromUser(window.netlifyIdentity.currentUser());
+        window.netlifyIdentity.on('init', syncFromUser);
+        window.netlifyIdentity.on('login', syncFromUser);
+      }
+
       document.body.style.opacity = '1';
     });
     

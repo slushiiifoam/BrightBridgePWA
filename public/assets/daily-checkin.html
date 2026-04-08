@@ -56,18 +56,13 @@
     <span style="font-weight: 700; font-size: 18px;">HELP</span>
   </a>
 
+  <script src="/js/identity-display.js"></script>
   <script src="/js/journal-store.js"></script>
   <script>
     let currentUserKey = 'anonymous';
 
-    function resolveDisplayNameFromUser(user) {
-      if (!user) return '';
-      const meta = user.user_metadata || {};
-      const name = (meta.full_name || meta.name || user.email || '').trim();
-      return name.includes('@') ? name.split('@')[0] : name;
-    }
-
     window.addEventListener('load', () => {
+      const identityDisplay = window.IdentityDisplayName || {};
       if (window.netlifyIdentity) {
         const apiUrl = `${window.location.origin}/.netlify/identity`;
         window.netlifyIdentity.init({ APIUrl: apiUrl });
@@ -82,8 +77,9 @@
             return;
           }
 
-          const name = resolveDisplayNameFromUser(user);
-          if (name) localStorage.setItem('brightbridge_username', name);
+          const name = (typeof identityDisplay.syncStoredDisplayName === 'function')
+            ? identityDisplay.syncStoredDisplayName(user)
+            : '';
 
           if (window.JournalStore && typeof window.JournalStore.resolveUserKey === 'function') {
             currentUserKey = window.JournalStore.resolveUserKey(user);

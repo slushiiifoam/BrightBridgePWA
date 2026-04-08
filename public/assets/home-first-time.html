@@ -101,26 +101,33 @@
     quick exit
   </a>
   
+  <script src="/js/identity-display.js"></script>
   <script src="/js/journal-store.js"></script>
   <script>
     let selectedMood = null;
     let currentUserKey = 'anonymous';
     let isEditMode = false;
-
-    function resolveDisplayNameFromUser(user) {
-      if (!user) return '';
-      const meta = user.user_metadata || {};
-      const name = (meta.full_name || meta.name || user.email || '').trim();
-      return name.includes('@') ? name.split('@')[0] : name;
-    }
     
     window.addEventListener('load', () => {
+      const identityDisplay = window.IdentityDisplayName || {};
       const params = new URLSearchParams(window.location.search);
       isEditMode = params.get('mode') === 'edit';
       updateModeButtons();
 
-      const cachedName = localStorage.getItem('brightbridge_username') || '';
-      setWelcomeName(cachedName);
+      const cachedName = (typeof identityDisplay.getCachedDisplayName === 'function')
+        ? identityDisplay.getCachedDisplayName()
+        : '';
+      if (cachedName) {
+        setWelcomeName(cachedName);
+      } else {
+        const storedName = (typeof identityDisplay.resolveDisplayNameFromStoredUser === 'function')
+          ? identityDisplay.resolveDisplayNameFromStoredUser()
+          : '';
+        if (storedName) {
+          localStorage.setItem('brightbridge_username', storedName);
+          setWelcomeName(storedName);
+        }
+      }
 
       if (window.netlifyIdentity) {
         const apiUrl = `${window.location.origin}/.netlify/identity`;
@@ -136,9 +143,10 @@
             return;
           }
 
-          const resolvedName = resolveDisplayNameFromUser(user);
+          const resolvedName = (typeof identityDisplay.syncStoredDisplayName === 'function')
+            ? identityDisplay.syncStoredDisplayName(user)
+            : '';
           if (resolvedName) {
-            localStorage.setItem('brightbridge_username', resolvedName);
             setWelcomeName(resolvedName);
           }
 
