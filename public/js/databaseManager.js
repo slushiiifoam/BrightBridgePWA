@@ -13,15 +13,16 @@ const db = {
     ),
 
     //this function inserts a user into the database
-    insertUser : async function(username) {
+    //updated database. it should be emails just to make everything easier
+    insertUser : async function(email) {
         const { data, error } = await this.supabase
         .from("users")
-        .insert({ name: username })
+        .insert({ name: email })
         .select()
 
         if (error) {
-        console.error("Error inserting data:", error.message)
-        return error
+            console.error("Error inserting data:", error.message)
+            return error
         }
 
         // Use console.log for JS
