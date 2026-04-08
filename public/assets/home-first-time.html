@@ -159,14 +159,36 @@
 
       return '';
     }
+
+    function resolveDisplayNameFromStoredUser() {
+      try {
+        const raw = localStorage.getItem('brightbridge.user');
+        if (!raw) {
+          return '';
+        }
+
+        const parsed = JSON.parse(raw);
+        return resolveDisplayNameFromUser(parsed);
+      } catch (error) {
+        return '';
+      }
+    }
     
     window.addEventListener('load', () => {
       const params = new URLSearchParams(window.location.search);
       isEditMode = params.get('mode') === 'edit';
       updateModeButtons();
 
-      const cachedName = localStorage.getItem('brightbridge_username') || '';
-      setWelcomeName(cachedName);
+      const cachedName = (localStorage.getItem('brightbridge_username') || '').trim();
+      if (cachedName && cachedName.toLowerCase() !== 'user') {
+        setWelcomeName(cachedName);
+      } else {
+        const storedName = resolveDisplayNameFromStoredUser();
+        if (storedName) {
+          localStorage.setItem('brightbridge_username', storedName);
+          setWelcomeName(storedName);
+        }
+      }
 
       if (window.netlifyIdentity) {
         const apiUrl = `${window.location.origin}/.netlify/identity`;
@@ -182,7 +204,7 @@
             return;
           }
 
-          const resolvedName = resolveDisplayNameFromUser(user);
+          const resolvedName = resolveDisplayNameFromUser(user) || resolveDisplayNameFromStoredUser();
           if (resolvedName) {
             localStorage.setItem('brightbridge_username', resolvedName);
             setWelcomeName(resolvedName);
