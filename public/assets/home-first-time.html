@@ -107,11 +107,57 @@
     let currentUserKey = 'anonymous';
     let isEditMode = false;
 
+    function decodeJwtClaims(tokenValue) {
+      if (!tokenValue || typeof tokenValue !== 'string') {
+        return {};
+      }
+
+      const parts = tokenValue.split('.');
+      if (parts.length < 2) {
+        return {};
+      }
+
+      try {
+        const base64 = parts[1].replace(/-/g, '+').replace(/_/g, '/');
+        const padding = '='.repeat((4 - (base64.length % 4)) % 4);
+        return JSON.parse(atob(base64 + padding));
+      } catch (error) {
+        return {};
+      }
+    }
+
     function resolveDisplayNameFromUser(user) {
       if (!user) return '';
+
       const meta = user.user_metadata || {};
-      const name = (meta.full_name || meta.name || user.email || '').trim();
-      return name.includes('@') ? name.split('@')[0] : name;
+      const token = user.token || {};
+      const tokenMeta = token.user_metadata || {};
+      const claims = decodeJwtClaims(token.access_token || token.id_token || '');
+      const claimMeta = claims.user_metadata || {};
+
+      const candidates = [
+        meta.full_name,
+        meta.name,
+        tokenMeta.full_name,
+        tokenMeta.name,
+        claimMeta.full_name,
+        claimMeta.name,
+        claims.name,
+        user.email,
+        token.email,
+        claims.email
+      ];
+
+      for (const value of candidates) {
+        const trimmed = (value || '').trim();
+        if (!trimmed) {
+          continue;
+        }
+
+        return trimmed.includes('@') ? trimmed.split('@')[0] : trimmed;
+      }
+
+      return '';
     }
     
     window.addEventListener('load', () => {

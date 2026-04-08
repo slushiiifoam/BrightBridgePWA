@@ -119,9 +119,88 @@
   </a>
   
   <script>
+    function decodeJwtClaims(tokenValue) {
+      if (!tokenValue || typeof tokenValue !== 'string') {
+        return {};
+      }
+
+      const parts = tokenValue.split('.');
+      if (parts.length < 2) {
+        return {};
+      }
+
+      try {
+        const base64 = parts[1].replace(/-/g, '+').replace(/_/g, '/');
+        const padding = '='.repeat((4 - (base64.length % 4)) % 4);
+        const jsonString = atob(base64 + padding);
+        return JSON.parse(jsonString);
+      } catch (error) {
+        return {};
+      }
+    }
+
+    function resolveDisplayNameFromUser(user) {
+      if (!user) {
+        return '';
+      }
+
+      const meta = user.user_metadata || {};
+      const token = user.token || {};
+      const tokenMeta = token.user_metadata || {};
+      const claims = decodeJwtClaims(token.access_token || token.id_token || '');
+      const claimMeta = claims.user_metadata || {};
+
+      const candidates = [
+        meta.full_name,
+        meta.name,
+        tokenMeta.full_name,
+        tokenMeta.name,
+        claimMeta.full_name,
+        claimMeta.name,
+        claims.name,
+        user.email,
+        token.email,
+        claims.email
+      ];
+
+      for (const value of candidates) {
+        const trimmed = (value || '').trim();
+        if (!trimmed) {
+          continue;
+        }
+
+        return trimmed.includes('@') ? trimmed.split('@')[0] : trimmed;
+      }
+
+      return '';
+    }
+
     window.addEventListener('load', () => {
-      const username = localStorage.getItem('brightbridge_username') || 'User';
-      document.getElementById('user-display').textContent = username;
+      const userDisplay = document.getElementById('user-display');
+      const cachedName = (localStorage.getItem('brightbridge_username') || '').trim();
+      if (cachedName && cachedName.toLowerCase() !== 'user') {
+        userDisplay.textContent = cachedName;
+      }
+
+      if (window.netlifyIdentity) {
+        const apiUrl = `${window.location.origin}/.netlify/identity`;
+        window.netlifyIdentity.init({ APIUrl: apiUrl });
+
+        const syncFromUser = (user) => {
+          const resolvedName = resolveDisplayNameFromUser(user);
+          if (!resolvedName) {
+            return;
+          }
+
+          localStorage.setItem('brightbridge_username', resolvedName);
+          userDisplay.textContent = resolvedName;
+        };
+
+        syncFromUser(window.netlifyIdentity.currentUser());
+        window.netlifyIdentity.on('init', syncFromUser);
+        window.netlifyIdentity.on('login', syncFromUser);
+      }
+
       document.body.style.opacity = '1';
     });
     
