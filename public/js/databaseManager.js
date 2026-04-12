@@ -28,7 +28,23 @@ const db = {
         // Use console.log for JS
         console.log("Success:", data)
         return data
-    }
+    },
+
+    //this function gets the user information based on their email
+    getUserId: async function(email){
+        return { data, error} = await db.supabase
+                    .from('users')
+                    .select('id')
+                    .eq('email', email)
+                    .single();
+    },
+
+    //inserts specific data into a database of your choice 
+    insertData : async function(database, data){
+        return { data, error } = await db.supabase
+                    .from(database)
+                    .insert(data);
+    },
 
 }
 
