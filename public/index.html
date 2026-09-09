@@ -1,132 +1,42 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-  <meta name="description" content="BrightBridge - A trauma-informed app for youth relationship support">
-  <meta name="theme-color" content="#5B4B8A">
-  
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="apple-mobile-web-app-title" content="BrightBridge">
-  <meta name="mobile-web-app-capable" content="yes">
-  <link rel="apple-touch-icon" href="/assets/icons/icon-192.png">
-  
-  <title>BrightBridge - Welcome</title>
-  
-  <link rel="stylesheet" href="/assets/css/styles.css">
-  
-  <link rel="manifest" href="/manifest.json">
-  <script src="/js/app.js" type="module"></script>
+  <head>
+    <meta charset="utf-8" />
 
-</head>
-<body class="gradient-bg full-height center-content">
-  
-  <main class="container center-content" style="flex: 1;">
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content="BrightBridge - A trauma-informed app for youth relationship support">
+    <meta name="theme-color" content="#5B4B8A">
     
-    <div class="app-icon fade-in">
-      <div class="icon-container">
-        <svg class="app-logo" width="200" height="200" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
-          <rect width="200" height="200" rx="40" fill="#F5F5DC"/>
-          <circle cx="100" cy="80" r="35" fill="#FFA500" opacity="0.9"/>
-          <circle cx="100" cy="80" r="30" fill="#FF6B35"/>
-          <line x1="100" y1="45" x2="100" y2="30" stroke="#FFA500" stroke-width="3"/>
-          <line x1="120" y1="50" x2="130" y2="40" stroke="#FFA500" stroke-width="3"/>
-          <line x1="80" y1="50" x2="70" y2="40" stroke="#FFA500" stroke-width="3"/>
-          <rect x="30" y="100" width="140" height="8" fill="#2C2C2C"/>
-          <rect x="40" y="90" width="6" height="20" fill="#2C2C2C"/>
-          <rect x="95" y="85" width="10" height="25" fill="#2C2C2C"/>
-          <rect x="155" y="90" width="6" height="20" fill="#2C2C2C"/>
-          <line x1="45" y1="90" x2="100" y2="85" stroke="#2C2C2C" stroke-width="2"/>
-          <line x1="100" y1="85" x2="158" y2="90" stroke="#2C2C2C" stroke-width="2"/>
-          <ellipse cx="100" cy="130" rx="60" ry="15" fill="#E85D8A" opacity="0.6"/>
-        </svg>
-      </div>
-    </div>
-    
-    <button class="tap-enter-btn fade-in" onclick="enterApp()" aria-label="Tap to enter BrightBridge app">
-      <span class="tap-text">Tap to Enter</span>
-    </button>
-    
-  </main>
-  
-  <a href="https://www.weather.com" class="quick-exit" aria-label="Quick exit to weather website">
-    quick exit
-  </a>
-  
-  <script>
-    function enterApp() {
-      document.body.style.opacity = '0';
-      document.body.style.transition = 'opacity 0.3s ease';
-      
-      setTimeout(() => {
-        window.location.href = '/assets/login.html';
-      }, 300);
-    }
-    
-    window.addEventListener('load', () => {
-      document.body.style.opacity = '1';
-    });
-  </script>
-  
-  <style>
-    .app-icon {
-      margin-bottom: var(--spacing-xl);
-    }
-    
-    .icon-container {
-      background: var(--white);
-      border-radius: var(--radius-lg);
-      padding: var(--spacing-sm);
-      box-shadow: var(--shadow-lg);
-      animation: pulse 3s infinite;
-    }
-    
-    .app-logo {
-      display: block;
-    }
-    
-    .tap-enter-btn {
-      background: transparent;
-      border: 3px solid var(--white);
-      color: var(--white);
-      padding: var(--spacing-md) var(--spacing-xl);
-      font-size: var(--font-size-md);
-      font-weight: 600;
-      border-radius: var(--radius-lg);
-      cursor: pointer;
-      transition: all var(--transition-normal);
-      min-height: 56px;
-      animation-delay: 0.3s;
-    }
-    
-    .tap-enter-btn:hover {
-      background: var(--white);
-      color: var(--primary-purple);
-      transform: scale(1.05);
-    }
-    
-    .tap-enter-btn:active {
-      transform: scale(0.98);
-    }
-    
-    .tap-text {
-      font-size: var(--font-size-md);
-      letter-spacing: 1px;
-    }
-    
-    body {
-      opacity: 0;
-      transition: opacity 0.5s ease;
-    }
-    
-    @media (max-width: 480px) {
-      .app-logo {
-        width: 160px;
-        height: 160px;
-      }
-    }
-  </style>
-  
-</body>
+    <!--
+      manifest.json provides metadata used when your web app is installed on a
+      user's mobile device or desktop. See https://developers.google.com/web/fundamentals/web-app-manifest/
+    -->
+    <link rel="manifest" href="/manifest.json" />
+    <!--
+      Notice the use of %PUBLIC_URL% in the tags above.
+      It will be replaced with the URL of the `public` folder during the build.
+      Only files inside the `public` folder can be referenced from the HTML.
+
+      Unlike "/favicon.ico" or "favicon.ico", "%PUBLIC_URL%/favicon.ico" will
+      work correctly both with client-side routing and a non-root public URL.
+      Learn how to configure a non-root public URL by running `npm run build`.
+    -->
+    <title>BrightBridge</title>
+
+    <script src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <!--
+      This HTML file is a template.
+      If you open it directly in the browser, you will see an empty page.
+
+      You can add webfonts, meta tags, or analytics to this file.
+      The build step will place the bundled scripts into the <body> tag.
+
+      To begin the development, run `npm start` or `yarn start`.
+      To create a production bundle, use `npm run build` or `yarn build`.
+    -->
+  </body>
 </html>

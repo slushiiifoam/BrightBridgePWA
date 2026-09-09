@@ -1,0 +1,10 @@
+fastapi[standard]
+pwdlib[argon2]
+python-dotenv[standard]
+pyjwt
+pydantic
+uvicorn
+starlette
+slowapi
+mangum
+supabase

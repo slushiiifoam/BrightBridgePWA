@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="description" content="BrightBridge - Welcome Home">
+  <meta name="theme-color" content="#5B4B8A">
+  
+  <!-- iOS Support -->
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  
+  <title>BrightBridge - Home</title>
+  
+  <link rel="stylesheet" href="/assets/css/styles.css">
+  <link rel="stylesheet" href="/assets/css/homeStyles.css">
+  <script src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
+</head>
+<body class="full-height">
+  
+  <header class="gradient-header">
+    <div class="header-content">
+      <button id="editBackBtn" type="button" class="back-btn hidden" onclick="goBackToDailyCheckin()" aria-label="Back to diary entry page">
+        ← Diary Entry Page
+      </button>
+      <button id="logoutBtn" type="button" class="logout-btn" onclick="handleLogout()" aria-label="Log out">
+        Log Out
+      </button>
+    </div>
+  </header>
+  
+  <main class="container" style="flex: 1; padding-top: var(--spacing-lg);">
+    
+    <section class="welcome-section fade-in">
+      <h1 class="text-center" id="welcomeMessage">
+        Hi <span id="userName">User</span>,<br>
+        welcome home!
+      </h1>
+    </section>
+    
+    <section class="mood-checkin mt-lg fade-in" style="animation-delay: 0.2s;">
+      <h2 class="text-center mb-md">How are you feeling today?</h2>
+      
+      <div class="mood-selector" role="group" aria-label="Select your mood">
+        <button 
+          class="mood-btn happy" 
+          onclick="selectMood('happy')"
+          aria-label="Happy mood"
+          data-mood="happy"
+        >
+          😊
+        </button>
+        <button 
+          class="mood-btn neutral" 
+          onclick="selectMood('neutral')"
+          aria-label="Neutral mood"
+          data-mood="neutral"
+        >
+          😐
+        </button>
+        <button 
+          class="mood-btn sad" 
+          onclick="selectMood('sad')"
+          aria-label="Sad mood"
+          data-mood="sad"
+        >
+          ☹️
+        </button>
+      </div>
+    </section>
+    
+    <section class="daily-journal mt-lg fade-in" style="animation-delay: 0.4s;">
+      <h2 class="text-center mb-md">How was your day?</h2>
+      
+      <form id="dailyJournalForm" onsubmit="submitJournal(event)">
+        <div class="form-group">
+          <label for="dailyEntry" class="sr-only">Write about your day</label>
+          <textarea 
+            id="dailyEntry" 
+            name="dailyEntry" 
+            class="form-textarea" 
+            placeholder="start typing..."
+            rows="6"
+            aria-label="Write about your day"
+          ></textarea>
+        </div>
+        
+        <button id="firstTimeSubmitBtn" type="submit" class="btn btn-primary btn-large" style="width: 100%;">
+          Continue to Dashboard
+        </button>
+
+        <button id="editSubmitBtn" type="submit" class="btn btn-primary btn-large hidden" style="width: 100%;">
+          Save Changes and Return to Daily Check-In
+        </button>
+      </form>
+    </section>
+    
+  </main>
+  
+  <a href="https://www.weather.com" class="quick-exit" aria-label="Quick exit to weather website">
+    quick exit
+  </a>
+  
+  <script src="/js/identity-display.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="/js/databaseManager.js"></script>
+  <script src="/js/journal-store.js"></script>
+  <script>
+    let selectedMood = null;
+    let currentUserKey = null;
+    let isEditMode = false;
+    
+    window.addEventListener('load', async () => {
+      const identityDisplay = window.IdentityDisplayName || {};
+      const params = new URLSearchParams(window.location.search);
+      isEditMode = params.get('mode') === 'edit';
+      updateModeButtons();
+
+      const cachedName = (typeof identityDisplay.getCachedDisplayName === 'function')
+        ? identityDisplay.getCachedDisplayName()
+        : '';
+      if (cachedName) {
+        setWelcomeName(cachedName);
+      } else {
+        const storedName = (typeof identityDisplay.resolveDisplayNameFromStoredUser === 'function')
+          ? identityDisplay.resolveDisplayNameFromStoredUser()
+          : '';
+        if (storedName) {
+          localStorage.setItem('brightbridge_username', storedName);
+          setWelcomeName(storedName);
+        }
+      }
+
+      if (window.netlifyIdentity) {
+        const apiUrl = `${window.location.origin}/.netlify/identity`;
+        window.netlifyIdentity.init({ APIUrl: apiUrl });
+
+        let didResolveInit = false;
+
+        const syncFromUser = async (user) => {
+          if (!user) {
+            if (didResolveInit) {
+              window.location.assign('/assets/login.html');
+            }
+            return;
+          }
+
+          const resolvedName = (typeof identityDisplay.syncStoredDisplayName === 'function')
+            ? identityDisplay.syncStoredDisplayName(user)
+            : '';
+          if (resolvedName) {
+            setWelcomeName(resolvedName);
+          }
+
+          if (window.JournalStore && typeof window.JournalStore.resolveUserKey === 'function') {
+            currentUserKey = await window.JournalStore.resolveUserKey(user);
+            await loadTodayEntry();
+          }
+        };
+
+        const currentUser = window.netlifyIdentity.currentUser();
+        if (currentUser) {
+          await syncFromUser(currentUser);
+        }
+
+        window.netlifyIdentity.on('init', (user) => {
+          didResolveInit = true;
+          syncFromUser(user);
+        });
+        window.netlifyIdentity.on('login', syncFromUser);
+      }
+      
+      document.body.style.opacity = '1';
+      await loadTodayEntry();
+    });
+
+    function setWelcomeName(name) {
+      document.getElementById('userName').textContent = (name || 'User').trim() || 'User';
+    }
+
+    function updateModeButtons() {
+      const firstTimeBtn = document.getElementById('firstTimeSubmitBtn');
+      const editBtn = document.getElementById('editSubmitBtn');
+      const editBackBtn = document.getElementById('editBackBtn');
+      const logoutBtn = document.getElementById('logoutBtn');
+
+      if (!firstTimeBtn || !editBtn || !editBackBtn || !logoutBtn) {
+        return;
+      }
+
+      if (isEditMode) {
+        firstTimeBtn.classList.add('hidden');
+        editBtn.classList.remove('hidden');
+        editBackBtn.classList.remove('hidden');
+        logoutBtn.classList.add('hidden');
+      } else {
+        editBtn.classList.add('hidden');
+        firstTimeBtn.classList.remove('hidden');
+        editBackBtn.classList.add('hidden');
+        logoutBtn.classList.remove('hidden');
+      }
+    }
+
+    function goBackToDailyCheckin() {
+      window.location.assign('/assets/daily-checkin.html');
+    }
+    
+    async function loadTodayEntry() {
+      if (!window.JournalStore || typeof window.JournalStore.getTodayEntry !== 'function') {
+        return;
+      }
+
+      const todayEntry = await window.JournalStore.getTodayEntry(currentUserKey);
+      if (!todayEntry) {
+        return;
+      }
+
+      if (todayEntry.content) {
+        document.getElementById('dailyEntry').value = todayEntry.content;
+      }
+
+      if (todayEntry.mood) {
+        applyMoodSelection(todayEntry.mood);
+      }
+    }
+
+    function applyMoodSelection(mood) {
+      selectedMood = mood;
+
+      document.querySelectorAll('.mood-btn').forEach(btn => {
+        btn.classList.remove('active');
+      });
+
+      const selectedBtn = document.querySelector(`[data-mood="${mood}"]`);
+      if (selectedBtn) {
+        selectedBtn.classList.add('active');
+      }
+    }
+
+    async function selectMood(mood) {
+      applyMoodSelection(mood);
+
+      const selectedBtn = document.querySelector(`[data-mood="${mood}"]`);
+      
+      // Keep page logic simple by delegating storage details to JournalStore.
+      if (window.JournalStore && typeof window.JournalStore.saveMood === 'function') {
+        await window.JournalStore.saveMood(currentUserKey, mood);
+      }
+
+      if (selectedBtn) {
+        selectedBtn.style.transform = 'scale(1.1)';
+        setTimeout(() => {
+          selectedBtn.style.transform = '';
+        }, 200);
+      }
+    }
+    
+    async function submitJournal(event) {
+      event.preventDefault();
+      
+      const journalEntry = document.getElementById('dailyEntry').value;
+
+      let savedEntry = null;
+      if (window.JournalStore && typeof window.JournalStore.saveOrUpdateTodayEntry === 'function') {
+        savedEntry = await window.JournalStore.saveOrUpdateTodayEntry(currentUserKey, journalEntry, selectedMood);
+      } else if (window.JournalStore && typeof window.JournalStore.saveJournalEntry === 'function') {
+        savedEntry = await window.JournalStore.saveJournalEntry(currentUserKey, journalEntry, selectedMood);
+      }
+
+      if (!savedEntry) {
+        const details = (window.JournalStore && typeof window.JournalStore.getLastError === 'function')
+          ? window.JournalStore.getLastError()
+          : '';
+        alert(`We could not save your journal entry. ${details || 'Please try again.'}`);
+        return;
+      }
+
+      localStorage.setItem('brightbridge_returning_user', 'true');
+      
+      window.location.href = isEditMode ? '/assets/daily-checkin.html' : '/assets/home.html';
+    }
+
+    function handleLogout() {
+      const redirectToLogin = () => {
+        window.location.assign('/assets/login.html');
+      };
+
+      if (!window.netlifyIdentity) {
+        redirectToLogin();
+        return;
+      }
+
+      let redirected = false;
+      const safeRedirect = () => {
+        if (redirected) {
+          return;
+        }
+
+        redirected = true;
+        redirectToLogin();
+      };
+
+      window.netlifyIdentity.on('logout', safeRedirect);
+
+      const result = window.netlifyIdentity.logout();
+      if (result && typeof result.then === 'function') {
+        result.then(safeRedirect).catch(safeRedirect);
+      }
+    }
+  </script>
+  
+  <style>
+    body {
+      opacity: 0;
+      transition: opacity 0.5s ease;
+      background-color: var(--white);
+    }
+    
+    .gradient-header {
+      min-height: 80px;
+      border-radius: 0 0 var(--radius-lg) var(--radius-lg);
+    }
+
+    .header-content {
+      position: relative;
+      min-height: 80px;
+    }
+
+    .logout-btn {
+      position: absolute;
+      top: 16px;
+      right: 16px;
+      border: 1px solid rgba(255, 255, 255, 0.75);
+      background: rgba(255, 255, 255, 0.16);
+      color: var(--white);
+      border-radius: var(--radius-sm);
+      padding: 6px 10px;
+      font-size: var(--font-size-xs);
+      cursor: pointer;
+      transition: background-color var(--transition-fast), transform var(--transition-fast);
+    }
+
+    .logout-btn:hover {
+      background: rgba(255, 255, 255, 0.28);
+      transform: translateY(-1px);
+    }
+
+    .back-btn {
+      position: absolute;
+      top: 16px;
+      left: 16px;
+      border: 1px solid rgba(255, 255, 255, 0.75);
+      background: rgba(255, 255, 255, 0.16);
+      color: var(--white);
+      border-radius: var(--radius-sm);
+      padding: 6px 10px;
+      font-size: var(--font-size-xs);
+      cursor: pointer;
+      transition: background-color var(--transition-fast), transform var(--transition-fast);
+    }
+
+    .back-btn:hover {
+      background: rgba(255, 255, 255, 0.28);
+      transform: translateY(-1px);
+    }
+    
+    .welcome-section h1 {
+      font-size: var(--font-size-lg);
+      color: var(--text-dark);
+      line-height: 1.4;
+      font-weight: 600;
+    }
+    
+    .mood-checkin h2,
+    .daily-journal h2 {
+      font-size: var(--font-size-md);
+      font-weight: 600;
+      color: var(--text-dark);
+    }
+    
+    .mood-selector {
+      padding: var(--spacing-md) 0;
+    }
+    
+    .mood-btn {
+      box-shadow: var(--shadow-md);
+    }
+    
+    .form-textarea {
+      background-color: var(--light-gray);
+      border: 2px solid var(--light-gray);
+      font-size: var(--font-size-sm);
+      line-height: 1.6;
+    }
+    
+    .form-textarea:focus {
+      background-color: var(--white);
+      border-color: var(--primary-purple);
+    }
+    
+    .daily-journal {
+      margin-bottom: var(--spacing-xl);
+    }
+    
+    @media (max-width: 480px) {
+      .welcome-section h1 {
+        font-size: var(--font-size-md);
+      }
+      
+      .mood-btn {
+        width: 56px;
+        height: 56px;
+        font-size: 28px;
+      }
+
+      .header-content {
+        min-height: 72px;
+      }
+
+      .logout-btn {
+        top: 12px;
+        right: 12px;
+      }
+
+      .back-btn {
+        top: 12px;
+        left: 12px;
+      }
+    }
+    
+    @media (min-width: 481px) {
+      .gradient-header {
+        min-height: 100px;
+      }
+      
+      .welcome-section h1 {
+        font-size: var(--font-size-xl);
+      }
+    }
+  </style>
+  
+</body>
+</html>

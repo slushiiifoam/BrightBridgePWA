@@ -1,25 +1,43 @@
 {
-  "name": "brightbridgepwa",
-  "version": "1.0.0",
-  "description": "pwa for EPICS",
-  "homepage": "https://github.com/anglxr/BrightBridgePWA#readme",
-  "bugs": {
-    "url": "https://github.com/anglxr/BrightBridgePWA/issues"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/anglxr/BrightBridgePWA.git"
-  },
-  "license": "ISC",
-  "author": "",
-  "type": "module",
-  "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
+  "name": "react-test-app",
+  "version": "0.1.0",
+  "private": true,
   "dependencies": {
-    "@supabase/supabase-js": "^2.101.1"
+    "@supabase/supabase-js": "^2.103.3",
+    "@testing-library/dom": "^10.4.1",
+    "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/react": "^16.3.2",
+    "@testing-library/user-event": "^13.5.0",
+    "formik": "^2.4.9",
+    "react": "^19.2.5",
+    "react-dom": "^19.2.5",
+    "react-router-dom": "^7.14.1",
+    "react-scripts": "5.0.1",
+    "web-vitals": "^2.1.4",
+    "yup": "^1.7.1"
   },
-  "devDependencies": {},
-  "keywords": []
+  "scripts": {
+    "start": "react-scripts start",
+    "build": "react-scripts build",
+    "test": "react-scripts test",
+    "eject": "react-scripts eject"
+  },
+  "eslintConfig": {
+    "extends": [
+      "react-app",
+      "react-app/jest"
+    ]
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
+  }
 }

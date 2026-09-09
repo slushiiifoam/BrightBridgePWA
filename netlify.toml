@@ -1,9 +1,20 @@
-[build]
-  publish = "public"
-  functions = "netlify/functions"
-
-[functions]
-  node_bundler = "esbuild"
-
 # Environment variables (set these in Netlify UI)
 # NETLIFY_SITE_ID - automatically provided by Netlify
+
+
+[build]
+  command = "npm run build"
+  publish = "build"
+
+  #requirments are also automatically downloaded for you
+
+[functions]
+  # Tell Netlify to include your Python virtual environment/dependencies
+  # you only use include files when you require something from outside of 
+  python_version = "3.10"
+
+[[redirects]]
+  from = "/api/*"
+  to = "/.netlify/functions/api/:splat"
+  status = 200
+  force = true
