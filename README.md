@@ -1,2 +1,2 @@
 # BrightBridgePWA
-- https://brightbridgepwa.netlify.app/
+- https://bright-bridge-pwa.netlify.app/ 
