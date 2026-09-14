@@ -89,30 +89,24 @@ const Auth = {
 
     // Return the current access token string when logged in.
     getToken() {
-        return this.user ? this.user.token.access_token : null;
-    },
-    // Decode and return a friendly display name from the JWT metadata.
-    getUsername() {
-        try {
-            const userData = getJWTToken();
-
-            return userData.user_metadata.full_name || "User";
-        } catch (e) {
-            console.error("Invalid token format", e);
-            this.logout();
-            return null;
-        }
-    },
-    // Decode and return the authenticated user UUID/subject from the JWT.
-    getUserId() {
-        try {
-            const userData = getJWTToken();
-            return userData.sub;
-        } catch (e) {
-            this.logout();
-            return null;
-        }
+        return this.user?.token?.access_token || null;
     }
+
+},
+    getUsername() {
+        const user = this.user;
+
+        return (
+            user?.user_metadata?.full_name ||
+            user?.user_metadata?.name ||
+            user?.email?.split('@')[0] ||
+            'User'
+        );
+    },
+
+        getUserId() {
+    return this.user?.id || null;
+}
 };
 
 export default Auth
