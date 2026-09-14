@@ -1,84 +1,74 @@
 
-import {getJWTToken, parseUserToken} from '/js/tokenManager.js'
+import { getJWTToken } from '/js/tokenManager.js';
 
 // Auth module - handles Netlify Identity authentication
 const Auth = {
     user: null,
-    
-    // Initialize Identity, restore cached session state, and wire auth event handlers.
-    init() { 
 
-        const savedUser = parseUserToken();
+    syncUser(user) {
+        this.user = user || null;
 
-        if(savedUser)
-            this.user = savedUser;
+        if (this.user) {
+            localStorage.setItem(
+                'brightbridge.user',
+                JSON.stringify(this.user)
+            );
+        } else {
+            localStorage.removeItem('brightbridge.user');
+        }
 
-        // Initialize Netlify Identity
-        netlifyIdentity.init();
+        this.onAuthChange();
+    },
 
-        // Handle redirect after email confirmation
+    init() {
         netlifyIdentity.on('init', user => {
-
-            user = parseUserToken();
-
-            if(user){
-                this.user = user;
-                localStorage.setItem('brightbridge.user', JSON.stringify(user));
-            }
-            
-            this.onAuthChange();
+            this.syncUser(user);
         });
-        
-        // Set up event listeners
+
         netlifyIdentity.on('login', user => {
-            this.user = user;
-
-            if (user) localStorage.setItem('brightbridge.user', JSON.stringify(user));
-            else localStorage.removeItem('brightbridge.user');
-
-            this.onAuthChange();
+            this.syncUser(user);
             netlifyIdentity.close();
         });
-        
+
         netlifyIdentity.on('logout', () => {
-            console.log('triggering logout sequence');
             this.user = null;
-            localStorage.removeItem('brightbridge.user'); // Clean up the local storage token
+            localStorage.removeItem('brightbridge.user');
             this.onAuthChange();
         });
-        
-        netlifyIdentity.on('error', err => {
-            console.error('Identity error:', err);
+
+        netlifyIdentity.on('error', error => {
+            console.error('Identity error:', error);
+        });
+
+        netlifyIdentity.init({
+            APIUrl: `${window.location.origin}/.netlify/identity`
         });
     },
-    
+
     // Open the Netlify Identity login/signup modal.
     login() {
-         netlifyIdentity.open();
+        netlifyIdentity.open();
     },
-    
+
     // Clear local auth state and force navigation to the login page.
-    logout() {
-        if (confirm('Are you sure you want to log out?')) {
-            // 1. Immediately wipe the data locally. 
-            // We don't care what the server thinks anymore.
+    async logout() {
+        if (!confirm('Are you sure you want to log out?')) {
+            return;
+        }
+
+        try {
+            await netlifyIdentity.logout();
+
             this.user = null;
             localStorage.removeItem('brightbridge.user');
 
-            // 2. Try to tell Netlify to logout (it will likely fail with a 401/404, but that's okay)
-            try {
-                netlifyIdentity.logout();
-            } catch (e) {
-                console.log("Netlify logout call failed, moving on...");
-            }
-
-            // 3. DO THE REDIRECT IMMEDIATELY.
-            // This is the line that actually "moves" the user.
-            console.log("Local cleanup done. Forcing redirect to login...");
-            window.location.assign('/assets/login.html');
+            window.location.replace('/assets/login.html');
+        } catch (error) {
+            console.error('Logout failed:', error);
+            alert('Sign out did not complete. Please check your connection and try again.');
         }
     },
-    
+
     // Notify the global app shell that authentication state has changed.
     onAuthChange() {
         // This will be called by app.js to update the UI
@@ -86,23 +76,23 @@ const Auth = {
             window.App.updateAuthUI();
         }
     },
-    
+
     // Return whether an authenticated user object is currently available.
     isLoggedIn() {
         return this.user !== null;
     },
-    
+
     // Return the current user object from in-memory auth state.
     getUser() {
         return this.user;
     },
-    
+
     // Return the current access token string when logged in.
     getToken() {
         return this.user ? this.user.token.access_token : null;
     },
     // Decode and return a friendly display name from the JWT metadata.
-    getUsername(){
+    getUsername() {
         try {
             const userData = getJWTToken();
 
@@ -117,7 +107,7 @@ const Auth = {
     getUserId() {
         try {
             const userData = getJWTToken();
-            return userData.sub; 
+            return userData.sub;
         } catch (e) {
             this.logout();
             return null;
