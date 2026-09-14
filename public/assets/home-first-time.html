@@ -1,29 +1,26 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <meta name="description" content="BrightBridge - Welcome Home">
   <meta name="theme-color" content="#5B4B8A">
-
+  
   <!-- iOS Support -->
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-
+  
   <title>BrightBridge - Home</title>
-
+  
   <link rel="stylesheet" href="/assets/css/styles.css">
   <link rel="stylesheet" href="/assets/css/homeStyles.css">
   <script src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
 </head>
-
 <body class="full-height">
-
+  
   <header class="gradient-header">
     <div class="header-content">
-      <button id="editBackBtn" type="button" class="back-btn hidden" onclick="goBackToDailyCheckin()"
-        aria-label="Back to diary entry page">
+      <button id="editBackBtn" type="button" class="back-btn hidden" onclick="goBackToDailyCheckin()" aria-label="Back to diary entry page">
         ← Diary Entry Page
       </button>
       <button id="logoutBtn" type="button" class="logout-btn" onclick="handleLogout()" aria-label="Log out">
@@ -31,42 +28,63 @@
       </button>
     </div>
   </header>
-
+  
   <main class="container" style="flex: 1; padding-top: var(--spacing-lg);">
-
+    
     <section class="welcome-section fade-in">
       <h1 class="text-center" id="welcomeMessage">
         Hi <span id="userName">User</span>,<br>
         welcome home!
       </h1>
     </section>
-
+    
     <section class="mood-checkin mt-lg fade-in" style="animation-delay: 0.2s;">
       <h2 class="text-center mb-md">How are you feeling today?</h2>
-
+      
       <div class="mood-selector" role="group" aria-label="Select your mood">
-        <button class="mood-btn happy" onclick="selectMood('happy')" aria-label="Happy mood" data-mood="happy">
+        <button 
+          class="mood-btn happy" 
+          onclick="selectMood('happy')"
+          aria-label="Happy mood"
+          data-mood="happy"
+        >
           😊
         </button>
-        <button class="mood-btn neutral" onclick="selectMood('neutral')" aria-label="Neutral mood" data-mood="neutral">
+        <button 
+          class="mood-btn neutral" 
+          onclick="selectMood('neutral')"
+          aria-label="Neutral mood"
+          data-mood="neutral"
+        >
           😐
         </button>
-        <button class="mood-btn sad" onclick="selectMood('sad')" aria-label="Sad mood" data-mood="sad">
+        <button 
+          class="mood-btn sad" 
+          onclick="selectMood('sad')"
+          aria-label="Sad mood"
+          data-mood="sad"
+        >
           ☹️
         </button>
       </div>
     </section>
-
+    
     <section class="daily-journal mt-lg fade-in" style="animation-delay: 0.4s;">
       <h2 class="text-center mb-md">How was your day?</h2>
-
+      
       <form id="dailyJournalForm" onsubmit="submitJournal(event)">
         <div class="form-group">
           <label for="dailyEntry" class="sr-only">Write about your day</label>
-          <textarea id="dailyEntry" name="dailyEntry" class="form-textarea" placeholder="start typing..." rows="6"
-            aria-label="Write about your day"></textarea>
+          <textarea 
+            id="dailyEntry" 
+            name="dailyEntry" 
+            class="form-textarea" 
+            placeholder="start typing..."
+            rows="6"
+            aria-label="Write about your day"
+          ></textarea>
         </div>
-
+        
         <button id="firstTimeSubmitBtn" type="submit" class="btn btn-primary btn-large" style="width: 100%;">
           Continue to Dashboard
         </button>
@@ -76,13 +94,13 @@
         </button>
       </form>
     </section>
-
+    
   </main>
-
+  
   <a href="https://www.weather.com" class="quick-exit" aria-label="Quick exit to weather website">
     quick exit
   </a>
-
+  
   <script type="importmap">
     {
       "imports": {
@@ -102,7 +120,7 @@
     let selectedMood = null;
     let currentUserKey = null;
     let isEditMode = false;
-
+    
     window.addEventListener('load', async () => {
       const params = new URLSearchParams(window.location.search);
       isEditMode = params.get('mode') === 'edit';
@@ -153,7 +171,7 @@
         });
         window.netlifyIdentity.on('login', syncFromUser);
       }
-
+      
       document.body.style.opacity = '1';
       await loadTodayEntry();
     });
@@ -192,7 +210,7 @@
       window.location.assign('/assets/daily-checkin.html');
     }
     window.goBackToDailyCheckin = goBackToDailyCheckin;
-
+    
     // Load and render the current day's saved entry and mood if available.
     async function loadTodayEntry() {
       const todayEntry = await JournalStore.getTodayEntry(currentUserKey);
@@ -228,7 +246,7 @@
       applyMoodSelection(mood);
 
       const selectedBtn = document.querySelector(`[data-mood="${mood}"]`);
-
+      
       // Keep page logic simple by delegating storage details to JournalStore.
       await JournalStore.saveMood(currentUserKey, mood);
 
@@ -239,11 +257,11 @@
         }, 200);
       }
     }
-
+    
     // Persist journal content and route to the correct next page.
     async function submitJournal(event) {
       event.preventDefault();
-
+      
       const journalEntry = document.getElementById('dailyEntry').value;
 
       let savedEntry = null;
@@ -262,40 +280,50 @@
       }
 
       localStorage.setItem('brightbridge_returning_user', 'true');
-
+      
       window.location.href = isEditMode ? '/assets/daily-checkin.html' : '/assets/home.html';
     }
 
     // Log out with a safe redirect fallback for async identity widget behavior.
-    async function handleLogout() {
+    function handleLogout() {
+      const redirectToLogin = () => {
+        window.location.assign('/assets/login.html');
+      };
+
       if (!window.netlifyIdentity) {
-        alert('Authentication is unavailable. Please reload and try again.');
+        redirectToLogin();
         return;
       }
 
-      try {
-        await window.netlifyIdentity.logout();
+      let redirected = false;
+      const safeRedirect = () => {
+        if (redirected) {
+          return;
+        }
 
-        localStorage.removeItem('brightbridge.user');
+        redirected = true;
+        redirectToLogin();
+      };
 
-        window.location.replace('/assets/login.html');
-      } catch (error) {
-        console.error('Logout failed:', error);
-        alert('Sign out did not complete. Please check your connection and try again.');
+      window.netlifyIdentity.on('logout', safeRedirect);
+
+      const result = window.netlifyIdentity.logout();
+      if (result && typeof result.then === 'function') {
+        result.then(safeRedirect).catch(safeRedirect);
       }
     }
     window.selectMood = selectMood;
     window.submitJournal = submitJournal;
     window.handleLogout = handleLogout;
   </script>
-
+  
   <style>
     body {
       opacity: 0;
       transition: opacity 0.5s ease;
       background-color: var(--white);
     }
-
+    
     .gradient-header {
       min-height: 80px;
       border-radius: 0 0 var(--radius-lg) var(--radius-lg);
@@ -343,50 +371,50 @@
       background: rgba(255, 255, 255, 0.28);
       transform: translateY(-1px);
     }
-
+    
     .welcome-section h1 {
       font-size: var(--font-size-lg);
       color: var(--text-dark);
       line-height: 1.4;
       font-weight: 600;
     }
-
+    
     .mood-checkin h2,
     .daily-journal h2 {
       font-size: var(--font-size-md);
       font-weight: 600;
       color: var(--text-dark);
     }
-
+    
     .mood-selector {
       padding: var(--spacing-md) 0;
     }
-
+    
     .mood-btn {
       box-shadow: var(--shadow-md);
     }
-
+    
     .form-textarea {
       background-color: var(--light-gray);
       border: 2px solid var(--light-gray);
       font-size: var(--font-size-sm);
       line-height: 1.6;
     }
-
+    
     .form-textarea:focus {
       background-color: var(--white);
       border-color: var(--primary-purple);
     }
-
+    
     .daily-journal {
       margin-bottom: var(--spacing-xl);
     }
-
+    
     @media (max-width: 480px) {
       .welcome-section h1 {
         font-size: var(--font-size-md);
       }
-
+      
       .mood-btn {
         width: 56px;
         height: 56px;
@@ -407,18 +435,17 @@
         left: 12px;
       }
     }
-
+    
     @media (min-width: 481px) {
       .gradient-header {
         min-height: 100px;
       }
-
+      
       .welcome-section h1 {
         font-size: var(--font-size-xl);
       }
     }
   </style>
-
+  
 </body>
-
 </html>

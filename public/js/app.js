@@ -3,60 +3,67 @@ import Auth from '/js/auth.js'
 // Main app module - handles UI and orchestrates auth and data modules
 const App = {
     elements: {},
-
+    
     // Boot the app by initializing auth, caching key DOM nodes, and wiring listeners.
     init() {
         Auth.init()
 
         // Cache DOM elements
 
-        try {
+        try{
             this.elements = {
-                loginBtn: document.getElementById('login-btn'),
-                logoutBtn: document.getElementById('logout-btn'),
-                userDisplay: document.getElementById('user-display'),
-            };
-        } catch (e) {
-            alert('error: ' + e)
+            loginBtn: document.getElementById('login-btn'),
+            logoutBtn: document.getElementById('logout-btn'),
+            userDisplay: document.getElementById('user-display'),
+        };
+        }catch(e){
+            alert('error: '+e)
         }
-
+        
         // Set up event listeners
         this.setupEventListeners();
     },
-
+    
     // Attach click handlers and initialize visible user name where elements exist.
     setupEventListeners() {
 
-        if (this.elements.loginBtn)
+        if(this.elements.loginBtn)
             this.elements.loginBtn.addEventListener('click', () => {
                 Auth.login();
             });
-
-        if (this.elements.logoutBtn)
+        
+        if(this.elements.logoutBtn)
             this.elements.logoutBtn.addEventListener('click', () => {
                 Auth.logout();
             });
 
-        if (this.elements.userDisplay)
+        if(this.elements.userDisplay)
             this.elements.userDisplay.textContent = Auth.getUsername() || "Guest";
-
+        
     },
-
+    
     // Route users to the correct page whenever auth state changes.
     updateAuthUI() {
         console.log('switching the user to another page')
-        const user = Auth.getUser();
+        var savedUser = localStorage.getItem('brightbridge.user');
+        var user;
+
+        try {
+            user = savedUser ? JSON.parse(savedUser) : null;
+        } catch (e) {
+            user = null; // Guard against malformed JSON
+        }
 
         // IF THE USER IS NULL:
         if (!user) {
-            // Only redirect if we are NOT already on the login page
+            // Only redirect if we are NOT already on the login page{
 
-            if (!window.location.pathname.includes('login.html')) {
+            if(!window.location.pathname.includes('login.html')){
                 window.location.assign('/assets/login.html');
                 console.log('redirecting to login page');
                 return;
             }
-
+                
             console.log('the user doesnt exist but is on the login page');
             return; // Stay here, do nothing else.
         }
@@ -65,7 +72,7 @@ const App = {
         // IF THE USER EXISTS and is on login/index, redirect appropriately:
         // First-time users go to home-first-time for onboarding.
         // Returning users go straight to the standard dashboard.
-        if (window.location.pathname.includes('login.html') || window.location.pathname.includes('index.html')) {
+        if(window.location.pathname.includes('login.html') || window.location.pathname.includes('index.html')) {
             const isReturningUser = localStorage.getItem('brightbridge_returning_user') === 'true';
             const destination = isReturningUser
                 ? '/assets/home.html'
@@ -76,7 +83,7 @@ const App = {
             window.location.assign(destination);
         }
 
-    }
+}
 };
 
 // Expose App globally so Auth can call updateAuthUI
