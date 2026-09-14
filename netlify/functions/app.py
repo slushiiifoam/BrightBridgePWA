@@ -15,9 +15,10 @@ from error_handling.setup import setup_error_handlers
 
 #routers
 from routers.auth import router as auth_router
+from routers.test import router as test_router
 
 #dependencies initiallized at beginning
-from infrastructure.jwt import Jwt_Manager
+from netlify.functions.infrastructure.jwt_provider import Jwt_Manager
 from infrastructure.cookie_processor import verify_auth_cookie
 
 #creating dependencies 
@@ -50,6 +51,7 @@ setup_error_handlers(app)
 
 # app.include_router(auth_router, prefix="/auth")
 app.include_router(auth_router)
+app.include_router(test_router)
 
 """
 Function that initially welcomes the user as the are connected to the endpoint.
