@@ -90,9 +90,8 @@ const Auth = {
     // Return the current access token string when logged in.
     getToken() {
         return this.user?.token?.access_token || null;
-    }
-
-},
+    },
+    // Decode and return a friendly display name from the JWT metadata.
     getUsername() {
         const user = this.user;
 
@@ -104,9 +103,9 @@ const Auth = {
         );
     },
 
-        getUserId() {
-    return this.user?.id || null;
-}
+    getUserId() {
+        return this.user?.id || null;
+    }
 };
 
 export default Auth
