@@ -5,7 +5,10 @@ async def verify_auth_cookie(request: Request, response: Response):
     jwt_token = request.cookies.get("jwt")
     uuid_token = request.cookies.get("uuid")
 
-    if jwt_token and is_valid_jwt(jwt_token):
+    jwt_manager = request.app.state.jwt_manager
+
+    if jwt_token and jwt_manager.is_valid_jwt(jwt_token):
+        request.state.user = jwt_manager.decode(jwt_token)
         return
 
     if not uuid_token:
@@ -14,12 +17,15 @@ async def verify_auth_cookie(request: Request, response: Response):
             detail="User not authorized. Please authenticate"
         )
 
-    regenerated_jwt = await regenerate_jwt_from_uuid(uuid_token)
+    regenerated_jwt = await jwt_manager.regenerate_jwt_from_uuid(uuid_token)
     if not regenerated_jwt:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="User not authorized. Please authenticate"
         )
+
+    user = jwt_manager.decode(regenerated_jwt)
+    request.state.user = user
 
     # Directly set the cookie on the response object injected by FastAPI
     response.set_cookie(

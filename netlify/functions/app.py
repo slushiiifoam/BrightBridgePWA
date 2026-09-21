@@ -6,6 +6,7 @@ import uvicorn
 from config.settings import settings
 
 from services.auth import Auth_Service
+from services.resources import Reosurce_Service
 
 #middlewares
 from middlewares.setup import setup_middlewares
@@ -14,12 +15,10 @@ from middlewares.setup import setup_middlewares
 from error_handling.setup import setup_error_handlers
 
 #routers
-from routers.auth import router as auth_router
-from routers.test import router as test_router
+from routers.setup import setup_routers
 
 #dependencies initiallized at beginning
 from netlify.functions.infrastructure.jwt_provider import Jwt_Manager
-from infrastructure.cookie_processor import verify_auth_cookie
 
 #creating dependencies 
 @asynccontextmanager
@@ -29,7 +28,9 @@ async def lifespan(app: FastAPI):
                                                format='%(asctime)s - %(levelname)s - %(message)s')
 
     app.state.jwt_manager = Jwt_Manager()
-    app.state.auth_router = Auth_Service()
+    app.state.auth_service = Auth_Service()
+
+    #app.state.resource_serve = Resource_Service()
 
     yield
 
@@ -50,8 +51,7 @@ setup_middlewares(app)
 setup_error_handlers(app)
 
 # app.include_router(auth_router, prefix="/auth")
-app.include_router(auth_router)
-app.include_router(test_router)
+setup_routers(app)
 
 """
 Function that initially welcomes the user as the are connected to the endpoint.

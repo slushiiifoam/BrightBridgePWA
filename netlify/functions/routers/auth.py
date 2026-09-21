@@ -32,7 +32,7 @@ class ChangeInfo(BaseModel):
 
 from infrastructure.ratelimiter import limiter
 
-router = APIRouter()
+router = APIRouter(prefix='/auth')
 logger = logging.getLogger(__name__)
 
 def log_user_activity(username: str, action: str):
