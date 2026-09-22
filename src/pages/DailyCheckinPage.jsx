@@ -5,7 +5,7 @@ import {
   PageHeader,
   QuickExit,
   StatusMessage,
-} from '../components/SharedUI.jsx'
+} from '../components/layout/SharedUI.jsx'
 import { useAuth } from '../features/auth/authContext.js'
 import { getRecentEntries } from '../features/journal/journalApi.js'
 import usePageTitle from '../lib/usePageTitle.js'

@@ -1,90 +1,82 @@
-import {
-  acceptInvite,
-  getUser,
-  handleAuthCallback,
-  login,
-  logout,
-  oauthLogin,
-  onAuthChange,
-  requestPasswordRecovery,
-  signup,
-  updateUser,
-} from '@netlify/identity'
+import netlifyIdentity from 'netlify-identity-widget'
 
-let callbackPromise
+const IDENTITY_CALLBACK_PATTERN = /(?:access_token|confirmation_token|invite_token|recovery_token|email_change_token|error=access_denied)=?/
+let identityCallbackPending = IDENTITY_CALLBACK_PATTERN.test(window.location.hash)
 
-// Process an Identity redirect once, even when React Strict Mode mounts twice in development.
-export function processAuthCallback() {
-  callbackPromise ??= handleAuthCallback()
-  return callbackPromise
-}
-
-// Restore the SDK-managed cookie/local session without copying JWTs into app storage.
+// Read the widget-owned user instead of keeping a second JWT or user snapshot.
 export function loadCurrentUser() {
-  return getUser()
+  return netlifyIdentity.currentUser()
 }
 
-// Keep every auth event (including cross-tab logout and token refresh) in one place.
+export function isIdentityReady() {
+  return Boolean(netlifyIdentity.store?.gotrue)
+}
+
+// Tell the router when the widget completed an OAuth, confirmation, invite, or recovery callback.
+export function consumeIdentityCallback() {
+  const pending = identityCallbackPending
+  identityCallbackPending = false
+  return pending
+}
+
+// Normalize widget events and cross-tab session changes for the React auth provider.
 export function subscribeToAuthChanges(callback) {
-  return onAuthChange(callback)
-}
+  const handleInit = (user) => callback('init', user || null)
+  const handleLogin = (user) => {
+    netlifyIdentity.close()
+    callback('login', user || null)
+  }
+  const handleLogout = () => callback('logout', null)
+  const handleError = (error) => callback('error', error)
+  const handleStorage = (event) => {
+    if (event.key !== 'gotrue.user') return
+    queueMicrotask(() => callback('storage', loadCurrentUser()))
+  }
 
-// Start the Google OAuth redirect using Netlify's supported headless SDK.
-export function loginWithGoogle() {
-  try {
-    oauthLogin('google')
-  } catch (error) {
-    // Version 2 signals a successful browser redirect by throwing after assigning location.
-    if (!String(error?.message || '').includes('Redirecting to OAuth provider')) {
-      throw error
-    }
+  netlifyIdentity.on('init', handleInit)
+  netlifyIdentity.on('login', handleLogin)
+  netlifyIdentity.on('logout', handleLogout)
+  netlifyIdentity.on('error', handleError)
+  window.addEventListener('storage', handleStorage)
+
+  return () => {
+    netlifyIdentity.off('init', handleInit)
+    netlifyIdentity.off('login', handleLogin)
+    netlifyIdentity.off('logout', handleLogout)
+    netlifyIdentity.off('error', handleError)
+    window.removeEventListener('storage', handleStorage)
   }
 }
 
-// Log in with the email/password option formerly supplied by the old widget.
-export function loginWithEmail(email, password) {
-  return login(email, password)
+// The widget contains email login, signup, recovery, invite handling, and enabled OAuth providers.
+export function openLoginWidget() {
+  netlifyIdentity.open('login')
 }
 
-// Create an email/password account and include a friendly display name when provided.
-export function signUpWithEmail(email, password, displayName = '') {
-  const name = displayName.trim()
-  return signup(email, password, name ? { full_name: name } : undefined)
+export async function signOut() {
+  await netlifyIdentity.logout()
 }
 
-// Ask Netlify Identity to email a secure password-recovery link.
-export function sendPasswordRecovery(email) {
-  return requestPasswordRecovery(email)
-}
-
-// Finish a recovery callback after the user chooses a replacement password.
-export function updatePassword(password) {
-  return updateUser({ password })
-}
-
-// Finish an Identity invite callback by setting the invited account's password.
-export function acceptIdentityInvite(token, password) {
-  return acceptInvite(token, password)
-}
-
-// Await the server logout so protected pages never race a still-valid session cookie.
-export function signOut() {
-  return logout()
+// Refresh through the widget before authenticated API calls; never persist another token copy.
+export async function getAccessToken() {
+  const user = loadCurrentUser()
+  return user ? user.jwt() : null
 }
 
 // Store onboarding state on the Identity profile so it follows the correct account.
 export function markOnboardingComplete(user) {
-  return updateUser({
+  const metadata = user?.user_metadata || user?.userMetadata || {}
+  return user.update({
     data: {
-      ...(user?.userMetadata || {}),
+      ...metadata,
       brightbridge_onboarded: true,
     },
   })
 }
 
-// Prefer normalized SDK fields and fall back to the email prefix for a friendly greeting.
+// Prefer provider/profile metadata and fall back to the email prefix for a friendly greeting.
 export function getDisplayName(user) {
-  const metadata = user?.userMetadata || {}
+  const metadata = user?.user_metadata || user?.userMetadata || {}
   const candidates = [user?.name, metadata.full_name, metadata.name]
 
   for (const value of candidates) {
@@ -101,5 +93,6 @@ export function getDisplayName(user) {
 }
 
 export function hasCompletedOnboarding(user) {
-  return user?.userMetadata?.brightbridge_onboarded === true
+  const metadata = user?.user_metadata || user?.userMetadata || {}
+  return metadata.brightbridge_onboarded === true
 }

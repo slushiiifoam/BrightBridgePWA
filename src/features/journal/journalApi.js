@@ -1,3 +1,5 @@
+import { getAccessToken } from '../auth/authClient.js'
+
 const JOURNAL_ENDPOINT = '/.netlify/functions/journal'
 
 // Use the browser's local date so entries change with the user's day, not server UTC.
@@ -10,11 +12,13 @@ function localDateKey(date = new Date()) {
 
 // Parse the shared JSON envelope and surface server errors to the page.
 async function requestJournal(path, options = {}) {
+  const accessToken = await getAccessToken()
   const response = await fetch(`${JOURNAL_ENDPOINT}${path}`, {
     credentials: 'same-origin',
     ...options,
     headers: {
       ...(options.body ? { 'Content-Type': 'application/json' } : {}),
+      ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
       ...options.headers,
     },
   })

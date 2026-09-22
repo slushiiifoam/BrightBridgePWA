@@ -5,7 +5,7 @@ import {
   MoodSelector,
   QuickExit,
   StatusMessage,
-} from '../components/SharedUI.jsx'
+} from '../components/layout/SharedUI.jsx'
 import { dashboardLinks } from '../content/appContent.js'
 import { useAuth } from '../features/auth/authContext.js'
 import { getTodayEntry, saveTodayEntry } from '../features/journal/journalApi.js'

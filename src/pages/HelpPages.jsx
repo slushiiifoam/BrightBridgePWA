@@ -3,7 +3,7 @@ import { Link, Navigate, useParams } from 'react-router-dom'
 import {
   PageHeader,
   QuickExit,
-} from '../components/SharedUI.jsx'
+} from '../components/layout/SharedUI.jsx'
 import { crisisResources, relationshipTypes } from '../content/appContent.js'
 import { useAuth } from '../features/auth/authContext.js'
 import usePageTitle from '../lib/usePageTitle.js'

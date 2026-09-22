@@ -20,7 +20,9 @@ If you are developing a production application, we recommend using TypeScript wi
 
 # BrightBridge PWA
 
-BrightBridge is now a React + Vite single-page app deployed on Netlify. The original static site remains under `legacy-static/` as migration reference only; Vite does not publish it.
+BrightBridge is a React + Vite single-page app deployed on Netlify. The original static site remains under `legacy-static/` as migration reference only; Vite does not publish it.
+
+Production site: https://bright-bridge-pwa.netlify.app/
 
 ## Run the app
 
@@ -29,7 +31,7 @@ npm ci
 npm run dev
 ```
 
-The regular Vite server is useful for visual work, but Netlify Identity and Functions require Netlify's local proxy:
+The regular Vite server is useful for visual work. On localhost, the Identity widget asks once for the production Netlify site URL so it can reach that site's Identity service. Netlify Functions still require the local proxy:
 
 ```sh
 netlify dev
@@ -39,21 +41,21 @@ Use a real HTTPS Netlify Deploy Preview to verify Google login, callback handlin
 
 ## Required Netlify setup
 
-The checked-in `netlify.toml` already sets:
+The checked-in `netlify.toml` sets:
 
 - Build command: `npm run build`
 - Publish directory: `dist`
 - Functions directory: `netlify/functions`
 - SPA fallback: unknown app routes return `index.html`
 
-Enable Netlify Identity, email/password registration, and its Google provider for the same site. Keep testing on one hostname during an auth flow; changing between the production URL and a branch-deploy URL creates separate browser sessions. If email confirmation is enabled, new email/password users must follow the confirmation link before their first login.
+Enable Netlify Identity, email/password registration, and its Google provider for the same site. Keep testing on one hostname during an auth flow; production and branch-deploy hostnames have separate browser cookies. If email confirmation is enabled, new email/password users must follow the confirmation link before their first login.
 
 Add these environment variables in Netlify:
 
 - `SUPABASE_URL` — the existing BrightBridge Supabase project URL.
 - `SUPABASE_SERVICE_ROLE_KEY` — the server-only service-role key. Never use a `VITE_` prefix or place this secret in browser code.
 
-Copy `.env.example` to `.env` for local Netlify testing and replace only the secret value. The journal endpoint intentionally returns a clear `503` until the service key exists instead of falling back to insecure browser writes.
+Copy `.env.example` to `.env` for local Netlify testing and replace only the secret value. The journal endpoint intentionally returns `503` until the service key exists instead of falling back to insecure browser writes.
 
 The existing database schema is preserved:
 
@@ -64,20 +66,20 @@ The existing database schema is preserved:
 ## App routes
 
 - `/` — welcome screen
-- `/login` — Google and email/password login, signup, recovery, and invite completion
+- `/login` — opens the Netlify Identity widget for email/password login, signup, recovery, invites, and Google
 - `/home` — protected dashboard
 - `/journal/today` — protected onboarding/today editor
 - `/daily-checkin` — protected recent journal history
 - `/help` — public support hub
 - `/help/relationships/:type` — public shared relationship-help page
 
-Legacy `/assets/*.html` URLs redirect to the matching React route. The old project linked to grounding, resources, conflict, microskills, quiz, and video files that never existed; these now show explicit Coming Soon screens instead of silently returning the app shell.
+Legacy `/assets/*.html` URLs redirect to the matching React route. The old project linked to grounding, resources, conflict, microskills, quiz, and video files that never existed; these show explicit Coming Soon screens instead of silently returning the app shell.
 
 ## Authentication and journal design
 
-`AuthProvider` is the only owner of session state. It uses `@netlify/identity` for Google OAuth and email/password login, signup, confirmation, recovery, invite completion, cookie hydration, token refresh, cross-tab changes, and logout. BrightBridge no longer copies users or JWTs into its own local storage.
+`AuthProvider` is the only React owner of session state. The browser uses `netlify-identity-widget` for the complete login UI and client session. The protected Netlify Function uses `@netlify/identity` to verify requests server-side. Before journal requests, the client asks the widget for a fresh JWT and sends it as a bearer token; BrightBridge does not maintain another user or token store.
 
-The browser never sends a user ID to the journal API. `netlify/functions/journal.mjs` verifies the Netlify Identity session, derives the UUID from that verified user, and performs all Supabase access on the server. Journal notes and moods share one record per user per local calendar day.
+The browser never chooses or sends a user ID to the journal API. `netlify/functions/journal.mjs` derives the UUID from the verified Identity user and performs Supabase access on the server. Journal notes and moods share one record per user per local calendar day.
 
 ## Checks before a deploy
 

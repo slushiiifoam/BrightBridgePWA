@@ -1,5 +1,5 @@
 import { Link, useParams } from 'react-router-dom'
-import { PageHeader, QuickExit } from '../components/SharedUI.jsx'
+import { PageHeader, QuickExit } from '../components/layout/SharedUI.jsx'
 import { comingSoonPages } from '../content/appContent.js'
 import { useAuth } from '../features/auth/authContext.js'
 import usePageTitle from '../lib/usePageTitle.js'

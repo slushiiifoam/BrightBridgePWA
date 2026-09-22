@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom'
-import { BrandLogo, QuickExit } from '../components/SharedUI.jsx'
+import { BrandLogo, QuickExit } from '../components/layout/SharedUI.jsx'
 import usePageTitle from '../lib/usePageTitle.js'
 
 // LandingPage recreates the original welcome screen without loading auth prematurely.
