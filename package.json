@@ -1,5 +1,5 @@
 {
-  "name": "brightbridge-vite-scaffold",
+  "name": "BrightBridgePWA",
   "private": true,
   "version": "0.0.0",
   "type": "module",
@@ -10,8 +10,11 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@netlify/identity": "^2.0.0",
+    "@supabase/supabase-js": "^2.116.0",
     "react": "^19.2.8",
-    "react-dom": "^19.2.8"
+    "react-dom": "^19.2.8",
+    "react-router-dom": "^7.18.4"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
