@@ -68,6 +68,6 @@ export default async (req, context) => {
   }
 };
 
-export const config = {
+/*export const config = {
   path: "/get-data"
-};
+}; */
