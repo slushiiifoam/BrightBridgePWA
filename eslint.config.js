@@ -5,7 +5,8 @@ import reactRefresh from 'eslint-plugin-react-refresh'
 import { defineConfig, globalIgnores } from 'eslint/config'
 
 export default defineConfig([
-  globalIgnores(['dist']),
+  // The legacy snapshot is reference material and is not part of the Vite build.
+  globalIgnores(['dist', 'legacy-static']),
   {
     files: ['**/*.{js,jsx}'],
     extends: [
