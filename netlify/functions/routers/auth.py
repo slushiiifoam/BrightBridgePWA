@@ -33,6 +33,15 @@ class ChangeInfo(BaseModel):
 from infrastructure.ratelimiter import limiter
 
 router = APIRouter()
+"""
+Health check for authentication service
+"""
+@router.get("/", status_code=status.HTTP_200_OK)
+async def health_check():
+    return {
+        "status": "OK",
+        "message": "Authentication service is running"
+    }
 logger = logging.getLogger(__name__)
 
 def log_user_activity(username: str, action: str):

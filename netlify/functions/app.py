@@ -48,7 +48,7 @@ setup_middlewares(app)
 setup_error_handlers(app)
 
 # app.include_router(auth_router, prefix="/auth")
-app.include_router(auth_router)
+app.include_router(auth_router, prefix="/auth", tags=["Authentication"])
 
 """
 Function that initially welcomes the user as the are connected to the endpoint.
