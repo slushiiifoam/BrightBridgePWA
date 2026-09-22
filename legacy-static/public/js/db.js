@@ -1,8 +1,8 @@
 import { createClient} from '@supabase/supabase-js'
 
-// Core database module for BrightBridge Supabase access and shared CRUD helpers.
-const SUPABASE_URL = "https://pyqznelkiujkmviedlha.supabase.co"
-const SUPABASE_ANON_KEY = "sb_publishable_TqBEuyZvC51pHJDVXAGk3Q_FigwHhN3"
+/* Core database module for BrightBridge Supabase access and shared CRUD helpers.
+const SUPABASE_URL = 
+const SUPABASE_ANON_KEY = */
 
 //class for managing the database
 const db = {
