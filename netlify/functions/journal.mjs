@@ -1,7 +1,6 @@
 import { getUser, verifyRequestOrigin } from '@netlify/identity'
 import { createClient } from '@supabase/supabase-js'
 
-const LEGACY_SUPABASE_URL = 'https://pyqznelkiujkmviedlha.supabase.co'
 const DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
 const ALLOWED_MOODS = new Set(['happy', 'neutral', 'sad'])
@@ -15,13 +14,14 @@ class ConfigurationError extends Error {}
 function getDatabase() {
   if (database) return database
 
-  const url = process.env.SUPABASE_URL || LEGACY_SUPABASE_URL
-  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY
-  if (!serviceRoleKey) {
+  const url = process.env.SUPABASE_URL
+  const publishableKey = process.env.SUPABASE_PUBLISHABLE_KEY
+  if (!url || !publishableKey) {
     throw new ConfigurationError('Journal storage is not configured on this deploy.')
   }
 
-  database = createClient(url, serviceRoleKey, {
+  // Prototype configuration: database RLS must protect direct publishable-key access.
+  database = createClient(url, publishableKey, {
     auth: { autoRefreshToken: false, persistSession: false },
   })
   return database

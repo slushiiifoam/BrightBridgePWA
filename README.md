@@ -53,7 +53,9 @@ Enable Netlify Identity, email/password registration, and its Google provider fo
 Add these environment variables in Netlify:
 
 - `SUPABASE_URL` — the existing BrightBridge Supabase project URL.
-- `SUPABASE_SERVICE_ROLE_KEY` — the server-only service-role key. Never use a `VITE_` prefix or place this secret in browser code.
+- `SUPABASE_PUBLISHABLE_KEY` — the modern public `sb_publishable_...` key used during the prototype.
+
+The publishable key runs as Supabase's low-privilege anonymous role. The current Netlify Function still verifies the Netlify Identity user before handling journal requests, but the key itself is public and cannot prevent direct Supabase API calls. Keep Row Level Security enabled with appropriate policies, and migrate the policies to authenticated Supabase users when the app moves to Supabase Auth.
 
 Copy `.env.example` to `.env` for local Netlify testing and replace only the secret value. The journal endpoint intentionally returns `503` until the service key exists instead of falling back to insecure browser writes.
 

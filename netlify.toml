@@ -12,4 +12,4 @@
   status = 200
 
 # Environment variables (set these in Netlify UI)
-# NETLIFY_SITE_ID - automatically provided by Netlify
+# SUPABASE_URL and SUPABASE_PUBLISHABLE_KEY
