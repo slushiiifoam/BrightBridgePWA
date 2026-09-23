@@ -57,7 +57,7 @@ Add these environment variables in Netlify:
 
 The publishable key runs as Supabase's low-privilege anonymous role. The current Netlify Function still verifies the Netlify Identity user before handling journal requests, but the key itself is public and cannot prevent direct Supabase API calls. Keep Row Level Security enabled with appropriate policies, and migrate the policies to authenticated Supabase users when the app moves to Supabase Auth.
 
-Copy `.env.example` to `.env` for local Netlify testing and replace only the secret value. The journal endpoint intentionally returns `503` until the service key exists instead of falling back to insecure browser writes.
+Copy `.env.example` to `.env` for local Netlify testing and replace both placeholder values. The journal endpoint returns `503` until the URL and publishable key are configured.
 
 The existing database schema is preserved:
 

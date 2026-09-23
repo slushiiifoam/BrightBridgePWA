@@ -62,8 +62,9 @@ export default function JournalPage() {
         try {
           await markOnboardingComplete(user)
         } catch (metadataError) {
-          // The saved entry still lets the next login infer that onboarding is complete.
           console.warn('Journal saved, but onboarding metadata could not be updated.', metadataError)
+          setMessage('Your entry was saved, but account setup could not be finished. Please select Continue again.')
+          return
         }
       }
       navigate(editMode ? '/daily-checkin' : '/home', { replace: true })

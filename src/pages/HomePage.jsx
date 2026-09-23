@@ -18,6 +18,7 @@ export default function HomePage() {
   const navigate = useNavigate()
   const [mood, setMood] = useState(null)
   const [todayContent, setTodayContent] = useState('')
+  const [loadedUserId, setLoadedUserId] = useState('')
   const [savingMood, setSavingMood] = useState(false)
   const [statusMessage, setStatusMessage] = useState('')
   const [statusTone, setStatusTone] = useState('info')
@@ -26,9 +27,12 @@ export default function HomePage() {
     let active = true
     getTodayEntry()
       .then((entry) => {
-        if (!active || !entry) return
-        setMood(entry.mood)
-        setTodayContent(entry.content || '')
+        if (!active) return
+        if (entry) {
+          setMood(entry.mood)
+          setTodayContent(entry.content || '')
+        }
+        setLoadedUserId(user.id)
       })
       .catch((error) => {
         if (!active) return
@@ -90,7 +94,7 @@ export default function HomePage() {
         <section className="card daily-checkin-card fade-in">
           <h2>Daily Check-In</h2>
           <p>How are you feeling today?</p>
-          <MoodSelector value={mood} onChange={handleMoodChange} disabled={savingMood} compact />
+          <MoodSelector value={mood} onChange={handleMoodChange} disabled={loadedUserId !== user?.id || savingMood} compact />
           <StatusMessage tone={statusTone}>{statusMessage}</StatusMessage>
         </section>
 

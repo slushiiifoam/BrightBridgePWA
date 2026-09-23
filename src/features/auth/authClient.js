@@ -3,6 +3,51 @@ import netlifyIdentity from 'netlify-identity-widget'
 const IDENTITY_CALLBACK_PATTERN = /(?:access_token|confirmation_token|invite_token|recovery_token|email_change_token|error=access_denied)=?/
 let identityCallbackPending = IDENTITY_CALLBACK_PATTERN.test(window.location.hash)
 
+// Decode only display/onboarding claims from the widget JWT; authorization still uses user.jwt().
+function decodeJwtClaims(tokenValue) {
+  if (typeof tokenValue !== 'string') return {}
+
+  const encodedPayload = tokenValue.split('.')[1]
+  if (!encodedPayload) return {}
+
+  try {
+    const normalized = encodedPayload.replace(/-/g, '+').replace(/_/g, '/')
+    const padded = normalized + '='.repeat((4 - (normalized.length % 4)) % 4)
+    const binary = atob(padded)
+    const bytes = Uint8Array.from(binary, (character) => character.charCodeAt(0))
+    return JSON.parse(new TextDecoder().decode(bytes))
+  } catch {
+    return {}
+  }
+}
+
+function getIdentityClaims(user) {
+  const tokenDetails = typeof user?.tokenDetails === 'function'
+    ? user.tokenDetails()
+    : user?.token
+  return decodeJwtClaims(tokenDetails?.access_token || tokenDetails?.id_token)
+}
+
+function getIdentityMetadata(user) {
+  const claims = getIdentityClaims(user)
+  return {
+    ...(claims.user_metadata || {}),
+    ...(user?.userMetadata || {}),
+    ...(user?.user_metadata || {}),
+  }
+}
+
+function firstIdentityData(user) {
+  if (!Array.isArray(user?.identities)) return {}
+  return user.identities.find((identity) => identity?.identity_data)?.identity_data || {}
+}
+
+function normalizeDisplayName(value) {
+  if (typeof value !== 'string' || !value.trim()) return ''
+  const trimmed = value.trim()
+  return trimmed.includes('@') ? trimmed.split('@')[0] : trimmed
+}
+
 // Read the widget-owned user instead of keeping a second JWT or user snapshot.
 export function loadCurrentUser() {
   return netlifyIdentity.currentUser()
@@ -14,6 +59,8 @@ export function isIdentityReady() {
 
 // Tell the router when the widget completed an OAuth, confirmation, invite, or recovery callback.
 export function consumeIdentityCallback() {
+  // Wait until the widget has consumed the hash; a restored stale user may arrive first.
+  if (IDENTITY_CALLBACK_PATTERN.test(window.location.hash)) return false
   const pending = identityCallbackPending
   identityCallbackPending = false
   return pending
@@ -65,7 +112,7 @@ export async function getAccessToken() {
 
 // Store onboarding state on the Identity profile so it follows the correct account.
 export function markOnboardingComplete(user) {
-  const metadata = user?.user_metadata || user?.userMetadata || {}
+  const metadata = getIdentityMetadata(user)
   return user.update({
     data: {
       ...metadata,
@@ -76,23 +123,30 @@ export function markOnboardingComplete(user) {
 
 // Prefer provider/profile metadata and fall back to the email prefix for a friendly greeting.
 export function getDisplayName(user) {
-  const metadata = user?.user_metadata || user?.userMetadata || {}
-  const candidates = [user?.name, metadata.full_name, metadata.name]
+  const metadata = getIdentityMetadata(user)
+  const claims = getIdentityClaims(user)
+  const providerData = firstIdentityData(user)
+  const candidates = [
+    user?.name,
+    metadata.full_name,
+    metadata.name,
+    providerData.full_name,
+    providerData.name,
+    claims.name,
+    user?.email,
+    providerData.email,
+    claims.email,
+  ]
 
   for (const value of candidates) {
-    if (typeof value === 'string' && value.trim()) {
-      return value.trim()
-    }
-  }
-
-  if (typeof user?.email === 'string' && user.email.trim()) {
-    return user.email.split('@')[0]
+    const displayName = normalizeDisplayName(value)
+    if (displayName) return displayName
   }
 
   return 'User'
 }
 
 export function hasCompletedOnboarding(user) {
-  const metadata = user?.user_metadata || user?.userMetadata || {}
+  const metadata = getIdentityMetadata(user)
   return metadata.brightbridge_onboarded === true
 }
