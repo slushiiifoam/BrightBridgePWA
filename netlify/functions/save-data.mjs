@@ -76,6 +76,6 @@ export default async (req, context) => {
   }
 };
 
-export const config = {
+/*export const config = {
   path: "/save-data"
-};
+}; */
