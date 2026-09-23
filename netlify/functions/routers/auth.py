@@ -68,7 +68,7 @@ async def login(login_info : Login,
                    httponly=True,
                    max_age=1800)
 
-    user_uuid = str(uuid.uuid4())
+    user_uuid = await auth_service.create_refresh_uuid(login_info.username)
     await auth_service.set_uuid(login_info.username, user_uuid)
 
     response.set_cookie(key="refresponseh_token",

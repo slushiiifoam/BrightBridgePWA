@@ -19,6 +19,8 @@ from routers.auth import router as auth_router
 #dependencies initiallized at beginning
 from infrastructure.jwt import Jwt_Manager
 
+from supabase import acreate_client
+
 #creating dependencies 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -26,8 +28,10 @@ async def lifespan(app: FastAPI):
     logging.basicConfig(level=logging.INFO, filename="job_post_recommendation_system.log", 
                                                format='%(asctime)s - %(levelname)s - %(message)s')
 
+    db = await acreate_client(settings.SUPABASE_URL, settings.SUPABASE_KEY)
+    app.state.db = db
     app.state.jwt_manager = Jwt_Manager()
-    app.state.auth_router = Auth_Service()
+    app.state.auth_router = Auth_Service(db, app.state.jwt_manager)
 
     yield
 

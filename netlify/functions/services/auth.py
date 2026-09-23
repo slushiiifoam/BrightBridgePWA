@@ -1,10 +1,10 @@
 from fastapi import HTTPException, status
 from pwdlib import PasswordHash
-
+import uuid
 from config.settings import settings
-
+from infrastructure.jwt import JWTManager
 from schemas.auth import User, ChangePasswordInfo, RoleChangeRequest, BanRequest, UnbanRequest
-
+from supabase import AsyncClient
 """
 This is the class that will manage the authentication information & jwt of users
 """
@@ -13,9 +13,11 @@ class Auth_Service:
     Constructor for the Auth_Manager
     Params: database (User_DB)
     """
-    def __init__ (self, database):
+    def __init__ (self, database, jwt_manager : JWTManager):
         self.password_hash = PasswordHash.recommended()
         self.auth = database.collection
+        self.jwt_manager = jwt_manager
+        self.db = database
 
     """
     Function that creates users and stores them in the database
@@ -137,3 +139,30 @@ class Auth_Service:
         result = await self.auth.update_one({"username" : request.target},
                                             {"$set" : {"banned" : request.banned, "reason" : request.reason}})
         return result.modified_count > 0
+    """
+    Function that creates a JWT for a user
+    params: email (str)
+    returns: jwt (str)
+    """
+    def create_jwt(self, email : str)-> str:
+        email = email.strip().lower()
+        token = self.jwt_manager.create_access_token(data={"sub" : email},duration=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
+        return token.access_token
+    
+    """
+    Function that creates a refresh uuid and stores it for the user
+    params: email (str)
+    returns: the refresh uuid (str)
+    """
+    async def create_refresh_uuid(self, email : str)-> str:
+        email = email.strip().lower()
+        user = await (self.db.table("users").select("email").eq("email", email).limit(1).execute())
+        if not user.data:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="User not found",
+            )
+        refresh_uuid = str(uuid.uuid4())
+        await (self.db.table("refresh_tokens").insert({"token" : refresh_uuid, "email" : email}).execute())
+        return refresh_uuid
+    

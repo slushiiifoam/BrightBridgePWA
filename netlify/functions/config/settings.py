@@ -13,6 +13,8 @@ class Settings(BaseSettings):
     HASH_ALGORITHM: str = "HS256"
     SECRET_KEY: str
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
+    SUPABASE_URL: str
+    SUPABASE_KEY: str
 
     # Automatically load values from a local .env file
     model_config = SettingsConfigDict(env_file=env_path, env_file_encoding="utf-8")
