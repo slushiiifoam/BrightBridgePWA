@@ -6,7 +6,7 @@ import uvicorn
 from config.settings import settings
 
 from services.auth import Auth_Service
-from services.resources import Reosurce_Service
+from services.resources import Resource_Service
 
 #middlewares
 from middlewares.setup import setup_middlewares
@@ -19,6 +19,7 @@ from routers.setup import setup_routers
 
 #dependencies initiallized at beginning
 from netlify.functions.infrastructure.jwt_provider import Jwt_Manager
+from infrastructure.supabase_repository import SupabaseRepository
 
 #creating dependencies 
 @asynccontextmanager
@@ -27,10 +28,11 @@ async def lifespan(app: FastAPI):
     logging.basicConfig(level=logging.INFO, filename="job_post_recommendation_system.log", 
                                                format='%(asctime)s - %(levelname)s - %(message)s')
 
-    app.state.jwt_manager = Jwt_Manager()
-    app.state.auth_service = Auth_Service()
+    database = SupabaseRepository()
 
-    #app.state.resource_serve = Resource_Service()
+    app.state.jwt_manager = Jwt_Manager()
+    app.state.auth_service = Auth_Service(database)
+    app.state.resource_serve = Resource_Service(database)
 
     yield
 
