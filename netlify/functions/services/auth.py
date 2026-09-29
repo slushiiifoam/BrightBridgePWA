@@ -2,7 +2,7 @@ from fastapi import HTTPException, status
 from pwdlib import PasswordHash
 import uuid
 from config.settings import settings
-from infrastructure.jwt import JWTManager
+from infrastructure.jwt import Jwt_Manager
 from schemas.auth import User, ChangePasswordInfo, RoleChangeRequest, BanRequest, UnbanRequest
 from supabase import AsyncClient
 """
@@ -13,28 +13,28 @@ class Auth_Service:
     Constructor for the Auth_Manager
     Params: database (User_DB)
     """
-    def __init__ (self, database, jwt_manager : JWTManager):
+    def __init__(self, db: AsyncClient, jwt_manager: Jwt_Manager):
         self.password_hash = PasswordHash.recommended()
-        self.auth = database.collection
+        self.db = db
         self.jwt_manager = jwt_manager
-        self.db = database
+
 
     """
     Function that creates users and stores them in the database
     Params: user (User) 
     """
-    async def create_user(self, user : User):
+    """async def create_user(self, user : User):
         user_data = user.model_dump()
         user_object['password'] = self.hash_password(user.password)
-        return await self.auth.insert_one(user_object)
+        return await self.auth.insert_one(user_object)"""
 
     """
     Function that gets users
     Params: username (str)
     Returns: result of whether they can find an entry with that username
     """
-    async def get_user(self, username : str):
-        return await self.auth.find_one({"username" : username})
+    """async def get_user(self, username : str):
+        return await self.auth.find_one({"username" : username})"""
 
     """
     Function that sets uuids
@@ -42,18 +42,18 @@ class Auth_Service:
             uuid (uuid)
     Returns: result of whether the uuid has been updated
     """
-    async def set_uuid(self, username : str, uuid : str):
+    """async def set_uuid(self, username : str, uuid : str):
         result = await self.auth.update_one({"username" : username}, 
                                                     {"$set" : {"uuid" : uuid}})
-        return result.modified_count > 0
+        return result.modified_count > 0"""
 
     """
     Function that confirms a user's uuid
     Params: username (str)
             uuid (uuid)
     """
-    async def confirm_uuid(self, uuid : str):
-        return await self.auth.find_one({"uuid" : uuid})
+    """async def confirm_uuid(self, uuid : str):
+        return await self.auth.find_one({"uuid" : uuid})"""
 
     """
     Function that gets users
@@ -61,7 +61,7 @@ class Auth_Service:
             old_password (str)
             new_password (str)
     """
-    async def change_password(self, change_password_info : ChangePasswordInfo):
+    """async def change_password(self, change_password_info : ChangePasswordInfo):
         user = await self.auth.find_one({"username" : change_password_info.username})
 
         if not user or not self.verify_password(change_password_info.old_password, user['password']):
@@ -74,7 +74,7 @@ class Auth_Service:
             { 'password' : hashed_new_password }
         }
 
-        return (await self.auth.update_one(query_filter, update_operation)).modified_count > 0
+        return (await self.auth.update_one(query_filter, update_operation)).modified_count > 0"""
 
     """
     Function that hashes the password
@@ -125,20 +125,20 @@ class Auth_Service:
     """
     Function that changes the roles of a user
     """
-    async def change_role(self, request : RoleChangeRequest):
+    """async def change_role(self, request : RoleChangeRequest):
         result = await self.auth.update_one({"username" : request.target}, 
                                             {"$set" : {"role" : request.role}})
-        return result.modified_count > 0
+        return result.modified_count > 0"""
 
     """
     Function that bans users
     Params: request : BanRequest
     Returns: whether the user was banned
     """
-    async def update_ban_status(self, request : BanRequest):
+    """async def update_ban_status(self, request : BanRequest):
         result = await self.auth.update_one({"username" : request.target},
                                             {"$set" : {"banned" : request.banned, "reason" : request.reason}})
-        return result.modified_count > 0
+        return result.modified_count > 0"""
     """
     Function that creates a JWT for a user
     params: email (str)
