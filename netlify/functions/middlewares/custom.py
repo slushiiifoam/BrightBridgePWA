@@ -1,5 +1,5 @@
 # app/api/middleware/security.py
-from fastapi import Request
+from fastapi import Request, Response, status, Cookie
 from starlette.middleware.base import BaseHTTPMiddleware
 
 """
@@ -18,17 +18,3 @@ class SecureResponseMiddleware(BaseHTTPMiddleware):
         response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
         
         return response
-
-class MonitoringMiddleware(BaseHTTPMiddleware):
-    async def dispatch(self, request: Request, call_next):
-        url = request.url.path
-        ignored_endpoints = {"/metrics", "/", "/health"}
-
-        if url in ignored_endpoints:
-            return await call_next(request)
-
-        try:
-            response = await call_next(request)
-            return response
-        except Exception as e:
-            raise
