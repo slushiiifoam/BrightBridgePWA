@@ -6,6 +6,7 @@ import uvicorn
 from config.settings import settings
 
 from services.auth import Auth_Service
+from services.resources import Resource_Service
 
 #middlewares
 from middlewares.setup import setup_middlewares
@@ -14,12 +15,12 @@ from middlewares.setup import setup_middlewares
 from error_handling.setup import setup_error_handlers
 
 #routers
-from routers.auth import router as auth_router
+from routers.setup import setup_routers
 
 #dependencies initiallized at beginning
-from infrastructure.jwt import Jwt_Manager
+from infrastructure.jwt_provider import Jwt_Manager
+from infrastructure.supabase_repository import SupabaseRepository
 
-from supabase import acreate_client
 
 #creating dependencies 
 @asynccontextmanager
@@ -28,10 +29,12 @@ async def lifespan(app: FastAPI):
     logging.basicConfig(level=logging.INFO, filename="job_post_recommendation_system.log", 
                                                format='%(asctime)s - %(levelname)s - %(message)s')
 
-    db = await acreate_client(settings.SUPABASE_URL, settings.SUPABASE_KEY)
-    app.state.db = db
-    app.state.jwt_manager = Jwt_Manager()
-    app.state.auth_router = Auth_Service(db, app.state.jwt_manager)
+    database = SupabaseRepository(settings.SUPABASE_URL, settings.SUPABASE_KEY)
+
+    app.state.jwt_manager = Jwt_Manager(database)
+    app.state.auth_service = Auth_Service(database, app.state.jwt_manager)
+    app.state.resource_serve = Resource_Service(database)
+
 
     yield
 
@@ -52,7 +55,7 @@ setup_middlewares(app)
 setup_error_handlers(app)
 
 # app.include_router(auth_router, prefix="/auth")
-app.include_router(auth_router)
+setup_routers(app)
 
 """
 Function that initially welcomes the user as the are connected to the endpoint.

@@ -7,7 +7,7 @@ from pydantic import ValidationError
 
 from typing import Annotated
 
-from infrastructure.jwt import Jwt_Manager
+from infrastructure.jwt_provider import Jwt_Manager
 
 from schemas.auth import ChangePasswordInfo
 
@@ -32,14 +32,14 @@ class ChangeInfo(BaseModel):
 
 from infrastructure.ratelimiter import limiter
 
-router = APIRouter()
+router = APIRouter(prefix='/auth')
 logger = logging.getLogger(__name__)
 
 def log_user_activity(username: str, action: str):
     logger.info(f"{datetime.now(timezone.utc)}: User {username} has {action}")
 
 def get_auth_service(request : Request) -> Auth_Service:
-    return request.app.state.auth_router
+    return request.app.state.auth_service
 
 def get_jwt_manager(request : Request) -> Jwt_Manager:
     return request.app.state.jwt_manager

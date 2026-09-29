@@ -1,5 +1,6 @@
-from fastapi import HTTPException, Depends
+from fastapi import HTTPException, Depends, status
 from fastapi.security import OAuth2PasswordBearer
+
 import jwt
 from jwt.exceptions import InvalidTokenError
 from datetime import datetime, timedelta, timezone
@@ -13,15 +14,19 @@ class AuthToken(BaseModel):
     access_token : str
     token_type : str
 
+class TokenData(BaseModel):
+    username : str
+
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
 """
 Class for managing jwts
 """
 class Jwt_Manager:
-    def __init__ (self):
+    def __init__ (self, user_database):
         self.secret_key = settings.SECRET_KEY
         self.hash_function = settings.HASH_ALGORITHM
+        self.user_database = user_database
 
     """
     Function that creates the jwt for the user
@@ -29,11 +34,10 @@ class Jwt_Manager:
             expires_delta -- ttl of data token
     Returns: an encoded jwt
     """
-    def create_access_token(self, data: dict, duration=30):
+    def create_access_token(self, username: str, duration=30):
         expires_delta = timedelta(minutes=duration)
-        to_encode = data.copy()
         expire = datetime.now(timezone.utc) + expires_delta
-        to_encode.update({"exp": expire})
+        to_encode = {"sub": username, "exp": expire}
         encoded_jwt = jwt.encode(to_encode, self.secret_key, algorithm=self.hash_function)
         return AuthToken(access_token=encoded_jwt, token_type="bearer")
 
@@ -45,7 +49,10 @@ class Jwt_Manager:
     def decode(self, token):
         return jwt.decode(token, self.secret_key, algorithms=[self.hash_function])
 
-        """
+    async def get_user(self, username : str):
+        return await self.user_database.get(username)
+
+    """
     Function for decoding jwts
     Params: token ()
     Returns: user object that contains user information

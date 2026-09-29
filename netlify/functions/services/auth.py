@@ -2,9 +2,8 @@ from fastapi import HTTPException, status
 from pwdlib import PasswordHash
 import uuid
 from config.settings import settings
-from infrastructure.jwt import Jwt_Manager
+from infrastructure.jwt_provider import Jwt_Manager
 from schemas.auth import User, ChangePasswordInfo, RoleChangeRequest, BanRequest, UnbanRequest
-from supabase import AsyncClient
 """
 This is the class that will manage the authentication information & jwt of users
 """
