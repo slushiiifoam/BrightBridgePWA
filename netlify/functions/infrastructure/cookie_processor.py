@@ -25,7 +25,7 @@ async def verify_auth_cookie(request: Request, response: Response):
         )
 
     user = jwt_manager.decode(regenerated_jwt)
-    request.state.user = user
+    request.state.uuid = user
 
     # Directly set the cookie on the response object injected by FastAPI
     response.set_cookie(

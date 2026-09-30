@@ -1,20 +1,19 @@
-# Environment variables (set these in Netlify UI)
-# NETLIFY_SITE_ID - automatically provided by Netlify
-
-
 [build]
   command = "npm run build"
-  publish = "build"
+  publish = "dist" # Use "build" if using Create React App instead of Vite
 
-  #requirments are also automatically downloaded for you
+[build.environment]
+  PYTHON_VERSION = "3.12"
 
-[functions]
-  # Tell Netlify to include your Python virtual environment/dependencies
-  # you only use include files when you require something from outside of 
-  python_version = "3.10"
-
+# 1. API proxy route to your FastAPI Serverless Function wrapper
 [[redirects]]
   from = "/api/*"
   to = "/.netlify/functions/api/:splat"
   status = 200
   force = true
+
+# 2. React SPA routing fallback (MUST be last)
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
