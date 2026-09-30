@@ -1,72 +1,94 @@
-# Getting Started with Create React App test
+# BrightBridgePWA
+- https://bright-bridge-pwa.netlify.app/ 
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+# React + Vite
 
-## Available Scripts
+This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
 
+Currently, two official plugins are available:
 
-Testing 
-In the project directory, you can run:
+- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
+- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
 
-### `npm start`
+## React Compiler
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+## Expanding the ESLint configuration
 
-### `npm test`
+If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+# BrightBridge PWA
 
-### `npm run build`
+BrightBridge is a React + Vite single-page app deployed on Netlify. The original static site remains under `legacy-static/` as migration reference only; Vite does not publish it.
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+Production site: https://bright-bridge-pwa.netlify.app/
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+## Run the app
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+```sh
+npm ci
+npm run dev
+```
 
-### `npm run eject`
+The regular Vite server is useful for visual work. On localhost, the Identity widget asks once for the production Netlify site URL so it can reach that site's Identity service. Netlify Functions still require the local proxy:
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+```sh
+netlify dev
+```
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+Use a real HTTPS Netlify Deploy Preview to verify Google login, callback handling, logout, session restoration, and cross-tab behavior in both Safari and Chrome.
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+## Required Netlify setup
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+The checked-in `netlify.toml` sets:
 
-## Learn More
+- Build command: `npm run build`
+- Publish directory: `dist`
+- Functions directory: `netlify/functions`
+- SPA fallback: unknown app routes return `index.html`
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+Enable Netlify Identity, email/password registration, and its Google provider for the same site. Keep testing on one hostname during an auth flow; production and branch-deploy hostnames have separate browser cookies. If email confirmation is enabled, new email/password users must follow the confirmation link before their first login.
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+Add these environment variables in Netlify:
 
-### Code Splitting
+- `SUPABASE_URL` — the existing BrightBridge Supabase project URL.
+- `SUPABASE_PUBLISHABLE_KEY` — the modern public `sb_publishable_...` key used during the prototype.
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+The publishable key runs as Supabase's low-privilege anonymous role. The current Netlify Function still verifies the Netlify Identity user before handling journal requests, but the key itself is public and cannot prevent direct Supabase API calls. Keep Row Level Security enabled with appropriate policies, and migrate the policies to authenticated Supabase users when the app moves to Supabase Auth.
 
-### Analyzing the Bundle Size
+Copy `.env.example` to `.env` for local Netlify testing and replace both placeholder values. The journal endpoint returns `503` until the URL and publishable key are configured.
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
+The existing database schema is preserved:
 
-### Making a Progressive Web App
+- `users(uuid, email)`
+- `journal_entry(uuid, created_date, entry, overall_emotion)`
+- A unique constraint on `journal_entry(uuid, created_date)` is required by the daily upsert.
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
+## App routes
 
-### Advanced Configuration
+- `/` — welcome screen
+- `/login` — opens the Netlify Identity widget for email/password login, signup, recovery, invites, and Google
+- `/home` — protected dashboard
+- `/journal/today` — protected onboarding/today editor
+- `/daily-checkin` — protected recent journal history
+- `/help` — public support hub
+- `/help/relationships/:type` — public shared relationship-help page
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
+Legacy `/assets/*.html` URLs redirect to the matching React route. The old project linked to grounding, resources, conflict, microskills, quiz, and video files that never existed; these show explicit Coming Soon screens instead of silently returning the app shell.
 
-### Deployment
+## Authentication and journal design
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
+`AuthProvider` is the only React owner of session state. The browser uses `netlify-identity-widget` for the complete login UI and client session. The protected Netlify Function uses `@netlify/identity` to verify requests server-side. Before journal requests, the client asks the widget for a fresh JWT and sends it as a bearer token; BrightBridge does not maintain another user or token store.
 
-### `npm run build` fails to minify
+The browser never chooses or sends a user ID to the journal API. `netlify/functions/journal.mjs` derives the UUID from the verified Identity user and performs Supabase access on the server. Journal notes and moods share one record per user per local calendar day.
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+## Checks before a deploy
+
+```sh
+npm run lint
+npm run build
+node --check netlify/functions/journal.mjs
+```
+
+Then verify `/`, `/login`, `/help`, and one protected route on the Deploy Preview. Also confirm an unauthenticated request to `/.netlify/functions/journal` returns JSON with `401`, not the React HTML page.
