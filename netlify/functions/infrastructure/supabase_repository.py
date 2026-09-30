@@ -6,8 +6,9 @@ class SupabaseRepository:
 
     def search(self, table: str, fields = "*" , column = None, value = None):
         """Find rows where `column` equals `value` in `table`."""
-        if column or value is None:
-            return self.client.table(table).select(fields).execute
+        if column is None or value is None:
+            return self.client.table(table).select(fields).execute().data
+
 
         response = self.client.table(table).select(fields).eq(column, value).execute()
         return response.data
