@@ -20,7 +20,7 @@
   <header class="app-header gradient-header">
     <div class="container">
       <div class="header-content">
-        <button class="back-button" onclick="goBack()" aria-label="Go to home page">
+        <button id="back-button" class="back-button" type="button" aria-label="Go to home page">
           ← Home
         </button>
         <h1 class="text-white">Daily Check-In</h1>
@@ -70,7 +70,12 @@
 
     let currentUserKey = null;
 
-    window.addEventListener('load', async () => {
+    const initDailyCheckin = async () => {
+      const backButton = document.getElementById('back-button');
+      if (backButton) {
+        backButton.addEventListener('click', goBack);
+      }
+
       if (window.netlifyIdentity) {
         const apiUrl = `${window.location.origin}/.netlify/identity`;
         window.netlifyIdentity.init({ APIUrl: apiUrl });
@@ -85,7 +90,7 @@
             return;
           }
 
-          const name = syncStoredDisplayName(user);
+          syncStoredDisplayName(user);
 
           currentUserKey = await JournalStore.resolveUserKey(user);
           await renderHistory();
@@ -105,7 +110,13 @@
 
       document.body.style.opacity = '1';
       await renderHistory();
-    });
+    };
+
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', initDailyCheckin);
+    } else {
+      initDailyCheckin();
+    }
 
     // Navigate back to the dashboard.
     function goBack() {

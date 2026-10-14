@@ -44,13 +44,13 @@
       </p>
       
       <div class="mood-selector" style="justify-content: flex-start;">
-        <button class="mood-btn happy" onclick="quickMoodCheck('happy')" aria-label="Happy">
+        <button class="mood-btn happy" data-mood="happy" aria-label="Happy">
           😊
         </button>
-        <button class="mood-btn neutral" onclick="quickMoodCheck('neutral')" aria-label="Neutral">
+        <button class="mood-btn neutral" data-mood="neutral" aria-label="Neutral">
           😐
         </button>
-        <button class="mood-btn sad" onclick="quickMoodCheck('sad')" aria-label="Sad">
+        <button class="mood-btn sad" data-mood="sad" aria-label="Sad">
           ☹️
         </button>
       </div>
@@ -122,7 +122,7 @@
     // Dashboard module: syncs display identity and handles quick local mood logging.
     import { getCachedDisplayName, syncStoredDisplayName } from '/js/identity-display.js';
 
-    window.addEventListener('load', () => {
+    const initDashboard = () => {
       const userDisplay = document.getElementById('user-display');
       const cachedName = getCachedDisplayName();
       if (cachedName) {
@@ -147,11 +147,23 @@
         window.netlifyIdentity.on('login', syncFromUser);
       }
 
+      document.querySelectorAll('.mood-btn').forEach((button) => {
+        button.addEventListener('click', (event) => {
+          quickMoodCheck(event, button.dataset.mood);
+        });
+      });
+
       document.body.style.opacity = '1';
-    });
+    };
+
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', initDashboard);
+    } else {
+      initDashboard();
+    }
     
     // Save a lightweight mood event for quick-check-in interactions on dashboard.
-    function quickMoodCheck(mood) {
+    function quickMoodCheck(event, mood) {
       const moodEntry = {
         mood: mood,
         timestamp: new Date().toISOString(),
@@ -162,7 +174,7 @@
       moodHistory.push(moodEntry);
       localStorage.setItem('brightbridge_mood_history', JSON.stringify(moodHistory));
       
-      const selectedBtn = event.target.closest('.mood-btn');
+      const selectedBtn = event.currentTarget.closest('.mood-btn');
       selectedBtn.style.transform = 'scale(1.2)';
       setTimeout(() => {
         selectedBtn.style.transform = '';

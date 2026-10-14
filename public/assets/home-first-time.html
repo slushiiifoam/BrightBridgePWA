@@ -20,10 +20,10 @@
   
   <header class="gradient-header">
     <div class="header-content">
-      <button id="editBackBtn" type="button" class="back-btn hidden" onclick="goBackToDailyCheckin()" aria-label="Back to diary entry page">
+      <button id="editBackBtn" type="button" class="back-btn hidden" aria-label="Back to diary entry page">
         ← Diary Entry Page
       </button>
-      <button id="logoutBtn" type="button" class="logout-btn" onclick="handleLogout()" aria-label="Log out">
+      <button id="logoutBtn" type="button" class="logout-btn" aria-label="Log out">
         Log Out
       </button>
     </div>
@@ -44,7 +44,6 @@
       <div class="mood-selector" role="group" aria-label="Select your mood">
         <button 
           class="mood-btn happy" 
-          onclick="selectMood('happy')"
           aria-label="Happy mood"
           data-mood="happy"
         >
@@ -52,7 +51,6 @@
         </button>
         <button 
           class="mood-btn neutral" 
-          onclick="selectMood('neutral')"
           aria-label="Neutral mood"
           data-mood="neutral"
         >
@@ -60,7 +58,6 @@
         </button>
         <button 
           class="mood-btn sad" 
-          onclick="selectMood('sad')"
           aria-label="Sad mood"
           data-mood="sad"
         >
@@ -72,7 +69,7 @@
     <section class="daily-journal mt-lg fade-in" style="animation-delay: 0.4s;">
       <h2 class="text-center mb-md">How was your day?</h2>
       
-      <form id="dailyJournalForm" onsubmit="submitJournal(event)">
+      <form id="dailyJournalForm">
         <div class="form-group">
           <label for="dailyEntry" class="sr-only">Write about your day</label>
           <textarea 
@@ -121,7 +118,27 @@
     let currentUserKey = null;
     let isEditMode = false;
     
-    window.addEventListener('load', async () => {
+    const initHomeFirstTime = async () => {
+      const editBackBtn = document.getElementById('editBackBtn');
+      const logoutBtn = document.getElementById('logoutBtn');
+      const form = document.getElementById('dailyJournalForm');
+
+      if (editBackBtn) {
+        editBackBtn.addEventListener('click', goBackToDailyCheckin);
+      }
+
+      if (logoutBtn) {
+        logoutBtn.addEventListener('click', handleLogout);
+      }
+
+      document.querySelectorAll('.mood-btn').forEach((button) => {
+        button.addEventListener('click', () => selectMood(button.dataset.mood));
+      });
+
+      if (form) {
+        form.addEventListener('submit', submitJournal);
+      }
+
       const params = new URLSearchParams(window.location.search);
       isEditMode = params.get('mode') === 'edit';
       updateModeButtons();
@@ -174,7 +191,13 @@
       
       document.body.style.opacity = '1';
       await loadTodayEntry();
-    });
+    };
+
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', initHomeFirstTime);
+    } else {
+      initHomeFirstTime();
+    }
 
     // Update the welcome heading with the best available display name.
     function setWelcomeName(name) {

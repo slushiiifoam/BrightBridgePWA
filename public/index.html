@@ -44,7 +44,7 @@
       </div>
     </div>
     
-    <button class="tap-enter-btn fade-in" onclick="enterApp()" aria-label="Tap to enter BrightBridge app">
+    <button id="tap-enter-btn" class="tap-enter-btn fade-in" type="button" aria-label="Tap to enter BrightBridge app">
       <span class="tap-text">Tap to Enter</span>
     </button>
     
@@ -54,19 +54,34 @@
     quick exit
   </a>
   
-  <script>
+  <script type="module">
+    const ENTER_DELAY_MS = 300;
+
     function enterApp() {
-      document.body.style.opacity = '0';
-      document.body.style.transition = 'opacity 0.3s ease';
-      
-      setTimeout(() => {
+      const body = document.body;
+      body.style.opacity = '0';
+      body.style.transition = 'opacity 0.3s ease';
+
+      window.setTimeout(() => {
         window.location.href = '/assets/login.html';
-      }, 300);
+      }, ENTER_DELAY_MS);
     }
-    
-    window.addEventListener('load', () => {
+
+    function initLandingPage() {
+      const button = document.getElementById('tap-enter-btn');
+
+      if (button) {
+        button.addEventListener('click', enterApp);
+      }
+
       document.body.style.opacity = '1';
-    });
+    }
+
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', initLandingPage);
+    } else {
+      initLandingPage();
+    }
   </script>
   
   <style>

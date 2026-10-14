@@ -53,10 +53,16 @@
     quick exit
   </a>
   
-  <script>
-    window.addEventListener('load', () => {
+  <script type="module">
+    const initLoginPage = () => {
       document.body.style.opacity = '1';
-    });
+    };
+
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', initLoginPage);
+    } else {
+      initLoginPage();
+    }
   </script>
 
 </body>
