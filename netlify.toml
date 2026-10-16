@@ -1,18 +1,21 @@
 [build]
   command = "npm run build"
-  publish = "dist" # Use "build" if using Create React App instead of Vite
+  publish = "dist"
+  functions = "netlify/functions"
+
+# Specify the JS runtime directory explicitly
+[functions]
+  directory = "netlify/functions"
 
 [build.environment]
   PYTHON_VERSION = "3.12"
 
-# 1. API proxy route to your FastAPI Serverless Function wrapper
 [[redirects]]
   from = "/api/*"
   to = "/.netlify/functions/api/:splat"
   status = 200
   force = true
 
-# 2. React SPA routing fallback (MUST be last)
 [[redirects]]
   from = "/*"
   to = "/index.html"

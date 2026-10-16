@@ -18,7 +18,7 @@ from error_handling.setup import setup_error_handlers
 from routers.setup import setup_routers
 
 #dependencies initiallized at beginning
-from netlify.functions.infrastructure.jwt_provider import Jwt_Manager
+from infrastructure.jwt_provider import Jwt_Manager
 from infrastructure.supabase_repository import SupabaseRepository
 
 #creating dependencies 

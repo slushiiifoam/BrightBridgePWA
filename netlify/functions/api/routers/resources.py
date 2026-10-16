@@ -40,8 +40,8 @@ def get_user(request: Request):
 Endpoint for checking hte health of the router
 """
 @limiter.limit("10/minute")
-@router.get("/", staus_code=status.HTTP_200_OK)
-def health():
+@router.get("/", status_code=status.HTTP_200_OK)
+def health(request : Request):
     return {"detail":"resources router is healthy"}
 
 

@@ -7,7 +7,7 @@ from pydantic import ValidationError
 
 from typing import Annotated
 
-from netlify.functions.infrastructure.jwt_provider import Jwt_Manager
+from infrastructure.jwt_provider import Jwt_Manager
 
 from schemas.auth import ChangePasswordInfo
 
