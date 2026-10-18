@@ -1,4 +1,4 @@
-from fastapi import FastAPI, APIRouter, status, HTTPException
+from fastapi import FastAPI, status
 from contextlib import asynccontextmanager
 import logging
 import uvicorn
@@ -25,14 +25,17 @@ from infrastructure.supabase_repository import SupabaseRepository
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # [Startup]: Triggered before the server starts accepting requests
-    logging.basicConfig(level=logging.INFO, filename="job_post_recommendation_system.log", 
+    logging.basicConfig(level=logging.INFO, filename="./logs/brightbridge.log", 
                                                format='%(asctime)s - %(levelname)s - %(message)s')
 
-    database = SupabaseRepository()
+    project_url = "https://pyqznelkiujkmviedlha.supabase.co"
+    key = "sb_publishable_TqBEuyZvC51pHJDVXAGk3Q_FigwHhN3"
 
-    app.state.jwt_manager = Jwt_Manager()
-    app.state.auth_service = Auth_Service(database)
-    app.state.resource_serve = Resource_Service(database)
+    database = SupabaseRepository(project_url, key)
+
+    #app.state.jwt_manager = Jwt_Manager()
+    #app.state.auth_service = Auth_Service(database)
+    app.state.resource_service = Resource_Service(database)
 
     yield
 

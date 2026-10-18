@@ -10,6 +10,7 @@ class Resource_Service:
     """
     def __init__(self, db):
         self.db = db
+        self.table = "resource_links"
 
     """
     Function for getting resourcs from the resources_db
@@ -17,10 +18,10 @@ class Resource_Service:
     def get_resources(self, body):
         query = body["query"]
 
-        if query:
-            return self.db.search("resources")
+        if not query:
+            return self.db.search(self.table)
 
-        return self.db.search(table="resources", column="title", value=query)
+        return self.db.search(table=self.table, column="title", value=query)
 
     """
     Function for verifying user privileges. If user doesn't have admin or editor privileges, then raise error
@@ -36,14 +37,14 @@ class Resource_Service:
     Function for updating/inserting resources from resources_db
     """
     def upsert_resource(self, user_uuid, contents):
-        self._verify_user_privilege(user_uuid)
-        result = self.db.upsert(table="resources", updated_data=contents)
+        #self._verify_user_privilege(user_uuid)
+        result = self.db.upsert(table=self.table, data=contents)
         return result
 
     """
     Function for removing resources from resources db
     """
     def remove_resource(self, user_uuid, resource_id):
-        self._verify_user_privilege(user_uuid)
-        result = self.db.delete(table="resources", column="id", value=resource_id)
+        #self._verify_user_privilege(user_uuid)
+        result = self.db.remove(table=self.table, column="id", value=resource_id)
         return result

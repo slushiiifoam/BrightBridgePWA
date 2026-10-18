@@ -10,9 +10,9 @@ from fastapi import Depends
 Setup routers for fastapi app
 """
 def setup_routers(app):
-    public_routers = [auth_router]
+    public_routers = [auth_router, resource_router]
 
-    protected_routers = [resource_router, test_router]
+    protected_routers = [test_router]
 
     for router in public_routers:
         app.include_router(router)

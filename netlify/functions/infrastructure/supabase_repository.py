@@ -4,12 +4,12 @@ class SupabaseRepository:
     def __init__(self, url: str, key: str):
         self.client: Client = create_client(url, key)
 
-    def search(self, table: str, fields = "*" , column = None, value = None):
+    def search(self, table: str, fields = "*" , column = None, value = None, limit=50):
         """Find rows where `column` equals `value` in `table`."""
         if column or value is None:
-            return self.client.table(table).select(fields).execute
+            return self.client.table(table).select(fields).limit(limit).execute()
 
-        response = self.client.table(table).select(fields).eq(column, value).execute()
+        response = self.client.table(table).select(fields).eq(column, value).limit(limit).execute()
         return response.data
 
     def remove(self, table: str, column: str, value: str) -> bool:

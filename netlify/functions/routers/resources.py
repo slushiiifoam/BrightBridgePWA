@@ -14,24 +14,18 @@ class Select_Body(BaseModel):
     query : str | None = None
 
 """
-The body for the document that needs to be deleted
-"""
-class Delete_Body(BaseModel):
-    resource_id : str
-
-"""
 The body for the document that needs to be upserted
 """
 class Upsert_Body(BaseModel):
-    resource_id : str
+    id : int | None = None
     title : str
-    author : str
+    link : str
     description : str
 
 router = APIRouter(prefix='/resources')
 
 def get_resource_service(request: Request):
-    return request.app.state.request_service
+    return request.app.state.resource_service
 
 def get_user(request: Request):
     return request.app.state.user
@@ -54,31 +48,36 @@ def retrieve_resrouces(request : Request,
                        body : Select_Body,
                        resource_service : Annotated[Resource_Service, Depends(get_resource_service)]):
     
-    resources = resource_service.get_resources(body.model_dumps())
+    resources = resource_service.get_resources(body.model_dump())
     return resources
 
 """
 Endpoint for upserting data into the resource
 """
 @limiter.limit("10/minute")
-@router.get("/upsert", status_code=status.HTTP_200_OK)
+@router.post("/upsert", status_code=status.HTTP_200_OK)
 def upsert_resources(request : Request,
                      doc_info : Upsert_Body,
                      user : Annotated[str, Depends(get_resource_service)],
                      resource_service : Annotated[Resource_Service, Depends(get_resource_service)]):
 
-    status = resource_service.upsert_resource(user, doc_info.model_dump())
+    doc_info_dict = doc_info.model_dump()
+
+    if doc_info_dict['id'] == None:
+        doc_info_dict.pop('id')
+
+    status = resource_service.upsert_resource(user, doc_info_dict)
     return {"status" : status}
 
 """
 Endpoint for deleting data from the resource
 """
 @limiter.limit("10/minute")
-@router.delete("/delete", status_code=status.HTTP_200_OK)
+@router.delete("/delete/{resource_id}", status_code=status.HTTP_200_OK)
 def delete_resources(request : Request,
-                     doc_info : Delete_Body,
+                     resource_id : int,
                      user : Annotated[str, Depends(get_resource_service)],
                      resource_service : Annotated[Resource_Service, Depends(get_resource_service)]):
 
-    status = resource_service.remove_resource(user, doc_info.resource_id)
+    status = resource_service.remove_resource(user, resource_id)
     return {"status" : status}
