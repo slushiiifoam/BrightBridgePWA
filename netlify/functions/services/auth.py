@@ -1,5 +1,4 @@
 from fastapi import HTTPException, status
-from pwdlib import PasswordHash
 import uuid
 from config.settings import settings
 from infrastructure.jwt_provider import Jwt_Manager
@@ -14,106 +13,8 @@ class Auth_Service:
     Params: database (User_DB)
     """
     def __init__(self, db: SupabaseRepository, jwt_manager: Jwt_Manager):
-        self.password_hash = PasswordHash.recommended()
         self.db = db
         self.jwt_manager = jwt_manager
-
-
-    """
-    Function that creates users and stores them in the database
-    Params: user (User) 
-    """
-    """async def create_user(self, user : User):
-        user_data = user.model_dump()
-        user_object['password'] = self.hash_password(user.password)
-        return await self.auth.insert_one(user_object)"""
-
-    """
-    Function that gets users
-    Params: username (str)
-    Returns: result of whether they can find an entry with that username
-    """
-    """async def get_user(self, username : str):
-        return await self.auth.find_one({"username" : username})"""
-
-    """
-    Function that sets uuids
-    Params: username (str)
-            uuid (uuid)
-    Returns: result of whether the uuid has been updated
-    """
-    """async def set_uuid(self, username : str, uuid : str):
-        result = await self.auth.update_one({"username" : username}, 
-                                                    {"$set" : {"uuid" : uuid}})
-        return result.modified_count > 0"""
-
-    """
-    Function that confirms a user's uuid
-    Params: username (str)
-            uuid (uuid)
-    """
-    """async def confirm_uuid(self, uuid : str):
-        return await self.auth.find_one({"uuid" : uuid})"""
-
-    """
-    Function that gets users
-    Params: username (str)
-            old_password (str)
-            new_password (str)
-    """
-    """async def change_password(self, change_password_info : ChangePasswordInfo):
-        user = await self.auth.find_one({"username" : change_password_info.username})
-
-        if not user or not self.verify_password(change_password_info.old_password, user['password']):
-            return False
-
-        hashed_new_password = self.hash_password(change_password_info.new_password)
-
-        query_filter = {'username' : change_password_info.username}
-        update_operation = { '$set' : 
-            { 'password' : hashed_new_password }
-        }
-
-        return (await self.auth.update_one(query_filter, update_operation)).modified_count > 0"""
-
-    """
-    Function that hashes the password
-    Params: password (str)
-    """
-    def hash_password(self, password):
-        return self.password_hash.hash(password)
-
-    """
-    Function that verifies the passwords 
-    Params: plain_password (str) -- unhashed password
-            hashed_password (str) -- hashed version of the password
-    Returns: boolean of whether the passwords match
-    """
-    def verify_password(self, plain_password, hashed_password):
-        return self.password_hash.verify(plain_password, hashed_password)
-
-    """
-    Function that authenticates users
-    Params: username (str)
-            password (str)
-    Returns: user object
-    """
-    async def authenticate_user(self, username : str, password : str):
-        user = await self.get_user(username)
-
-        if not user or not self.verify_password(password, user.password):
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Could not validate credentials",
-                headers={"WWW-Authenticate": "Bearer"},
-            )
-
-        if user.banned:
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail=f"User is banned. Reason: {str(user.reason)}",
-            )
-        return True
 
     """
     Function that checks if the user is an admin
@@ -123,30 +24,13 @@ class Auth_Service:
         return user and user['role'] == role
 
     """
-    Function that changes the roles of a user
-    """
-    """async def change_role(self, request : RoleChangeRequest):
-        result = await self.auth.update_one({"username" : request.target}, 
-                                            {"$set" : {"role" : request.role}})
-        return result.modified_count > 0"""
-
-    """
-    Function that bans users
-    Params: request : BanRequest
-    Returns: whether the user was banned
-    """
-    """async def update_ban_status(self, request : BanRequest):
-        result = await self.auth.update_one({"username" : request.target},
-                                            {"$set" : {"banned" : request.banned, "reason" : request.reason}})
-        return result.modified_count > 0"""
-    """
     Function that creates a JWT for a user
     params: email (str)
     returns: jwt (str)
     """
     def create_jwt(self, email : str)-> str:
         email = email.strip().lower()
-        token = self.jwt_manager.create_access_token(email,duration=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
+        token = self.jwt_manager.create_access_token(email, duration=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
         return token.access_token
     
     """
@@ -163,28 +47,35 @@ class Auth_Service:
                 detail="User not found",
             )
         refresh_uuid = str(uuid.uuid4())
-        self.db.insert("refresh_tokens", {"token": refresh_uuid, "email": email})
+        self.db.upsert("refresh_tokens", {"token": refresh_uuid, "email": email})
         return refresh_uuid
+
+    def confirm_uuid(self, uuid: str) -> str:
+        user = self.db.search("users", fields="email", column="uuid", value=uuid)
+
+        if not user:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="invalid request"
+            )
+
+        return user
     
     """
     Function that creates a new jwt for a user if the refresh uuid is valid
     params: refresh_uuid (str)
     returns: new jwt (str)
     """
-    def refresh_jwt(self, refresh_uuid : str)-> str:
-        invalid_token = HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid refresh token",
-        )
-
-        try:
-            uuid.UUID(refresh_uuid)
-        except (ValueError, TypeError):
-            raise invalid_token
+    def refresh_jwt(self, refresponseh_token : str)-> str:
+        if not refresponseh_token:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Refresponseh token cookie is missing."
+            )
         
-        user = self.db.search("refresh_tokens", fields="email", column="token", value=refresh_uuid)
+        confirmed_email = self.confirm_uuid(refresponseh_token)
 
-        if not user:
-            raise invalid_token
-        return self.create_jwt(user[0]['email'])
+        jwt = self.create_jwt({"sub" : confirmed_email})
+
+        return jwt
     

@@ -1,6 +1,6 @@
-from routers.auth import router as auth_router
-from routers.resources import router as resource_router
-from routers.test import router as test_router
+from netlify.functions.routers.auth import router as auth_router
+from netlify.functions.routers.resources import router as resource_router
+from netlify.functions.routers.test import router as test_router
 
 from infrastructure.cookie_processor import verify_auth_cookie
 
