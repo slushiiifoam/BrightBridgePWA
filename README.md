@@ -1,5 +1,4 @@
-# BrightBridgePWA
-- https://bright-bridge-pwa.netlify.app/ 
+# Getting Started with Create React App test
 
 # React + Vite
 
@@ -83,12 +82,4 @@ Legacy `/assets/*.html` URLs redirect to the matching React route. The old proje
 
 The browser never chooses or sends a user ID to the journal API. `netlify/functions/journal.mjs` derives the UUID from the verified Identity user and performs Supabase access on the server. Journal notes and moods share one record per user per local calendar day.
 
-## Checks before a deploy
-
-```sh
-npm run lint
-npm run build
-node --check netlify/functions/journal.mjs
-```
-
-Then verify `/`, `/login`, `/help`, and one protected route on the Deploy Preview. Also confirm an unauthenticated request to `/.netlify/functions/journal` returns JSON with `401`, not the React HTML page.
+This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)

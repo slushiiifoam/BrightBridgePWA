@@ -21,6 +21,7 @@ from routers.setup import setup_routers
 from infrastructure.jwt_provider import Jwt_Manager
 from infrastructure.supabase_repository import SupabaseRepository
 
+
 #creating dependencies 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -28,14 +29,12 @@ async def lifespan(app: FastAPI):
     logging.basicConfig(level=logging.INFO, filename="./logs/brightbridge.log", 
                                                format='%(asctime)s - %(levelname)s - %(message)s')
 
-    project_url = "https://pyqznelkiujkmviedlha.supabase.co"
-    key = "sb_publishable_TqBEuyZvC51pHJDVXAGk3Q_FigwHhN3"
+    database = SupabaseRepository(settings.SUPABASE_URL, settings.SUPABASE_KEY)
 
-    database = SupabaseRepository(project_url, key)
+    app.state.jwt_manager = Jwt_Manager(database)
+    app.state.auth_service = Auth_Service(database, app.state.jwt_manager)
+    app.state.resource_serve = Resource_Service(database)
 
-    #app.state.jwt_manager = Jwt_Manager()
-    #app.state.auth_service = Auth_Service(database)
-    app.state.resource_service = Resource_Service(database)
 
     yield
 

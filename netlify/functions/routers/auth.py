@@ -39,7 +39,7 @@ def log_user_activity(username: str, action: str):
     logger.info(f"{datetime.now(timezone.utc)}: User {username} has {action}")
 
 def get_auth_service(request : Request) -> Auth_Service:
-    return request.app.state.auth_router
+    return request.app.state.auth_service
 
 def get_jwt_manager(request : Request) -> Jwt_Manager:
     return request.app.state.jwt_manager
@@ -68,7 +68,7 @@ async def login(login_info : Login,
                    httponly=True,
                    max_age=1800)
 
-    user_uuid = str(uuid.uuid4())
+    user_uuid = await auth_service.create_refresh_uuid(login_info.username)
     await auth_service.set_uuid(login_info.username, user_uuid)
 
     response.set_cookie(key="refresponseh_token",

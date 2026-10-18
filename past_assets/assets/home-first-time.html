@@ -101,36 +101,30 @@
     quick exit
   </a>
   
-  <script type="importmap">
-    {
-      "imports": {
-        "@supabase/supabase-js": "https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm"
-      }
-    }
-  </script>
-  <script type="module">
-    // Home first-time module: handles onboarding journal capture and optional edit mode.
-    import JournalStore from '/js/subDBs/journal-store.js';
-    import {
-      getCachedDisplayName,
-      resolveDisplayNameFromStoredUser,
-      syncStoredDisplayName
-    } from '/js/identity-display.js';
-
+  <script src="/js/identity-display.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="/js/databaseManager.js"></script>
+  <script src="/js/journal-store.js"></script>
+  <script>
     let selectedMood = null;
     let currentUserKey = null;
     let isEditMode = false;
     
     window.addEventListener('load', async () => {
+      const identityDisplay = window.IdentityDisplayName || {};
       const params = new URLSearchParams(window.location.search);
       isEditMode = params.get('mode') === 'edit';
       updateModeButtons();
 
-      const cachedName = getCachedDisplayName();
+      const cachedName = (typeof identityDisplay.getCachedDisplayName === 'function')
+        ? identityDisplay.getCachedDisplayName()
+        : '';
       if (cachedName) {
         setWelcomeName(cachedName);
       } else {
-        const storedName = resolveDisplayNameFromStoredUser();
+        const storedName = (typeof identityDisplay.resolveDisplayNameFromStoredUser === 'function')
+          ? identityDisplay.resolveDisplayNameFromStoredUser()
+          : '';
         if (storedName) {
           localStorage.setItem('brightbridge_username', storedName);
           setWelcomeName(storedName);
@@ -151,13 +145,17 @@
             return;
           }
 
-          const resolvedName = syncStoredDisplayName(user);
+          const resolvedName = (typeof identityDisplay.syncStoredDisplayName === 'function')
+            ? identityDisplay.syncStoredDisplayName(user)
+            : '';
           if (resolvedName) {
             setWelcomeName(resolvedName);
           }
 
-          currentUserKey = await JournalStore.resolveUserKey(user);
-          await loadTodayEntry();
+          if (window.JournalStore && typeof window.JournalStore.resolveUserKey === 'function') {
+            currentUserKey = await window.JournalStore.resolveUserKey(user);
+            await loadTodayEntry();
+          }
         };
 
         const currentUser = window.netlifyIdentity.currentUser();
@@ -176,12 +174,10 @@
       await loadTodayEntry();
     });
 
-    // Update the welcome heading with the best available display name.
     function setWelcomeName(name) {
       document.getElementById('userName').textContent = (name || 'User').trim() || 'User';
     }
 
-    // Toggle visible action buttons between first-time and edit modes.
     function updateModeButtons() {
       const firstTimeBtn = document.getElementById('firstTimeSubmitBtn');
       const editBtn = document.getElementById('editSubmitBtn');
@@ -205,15 +201,16 @@
       }
     }
 
-    // Return to the daily check-in screen when editing from history.
     function goBackToDailyCheckin() {
       window.location.assign('/assets/daily-checkin.html');
     }
-    window.goBackToDailyCheckin = goBackToDailyCheckin;
     
-    // Load and render the current day's saved entry and mood if available.
     async function loadTodayEntry() {
-      const todayEntry = await JournalStore.getTodayEntry(currentUserKey);
+      if (!window.JournalStore || typeof window.JournalStore.getTodayEntry !== 'function') {
+        return;
+      }
+
+      const todayEntry = await window.JournalStore.getTodayEntry(currentUserKey);
       if (!todayEntry) {
         return;
       }
@@ -227,7 +224,6 @@
       }
     }
 
-    // Apply mood selection styling and cache the selected mood in local state.
     function applyMoodSelection(mood) {
       selectedMood = mood;
 
@@ -241,14 +237,15 @@
       }
     }
 
-    // Persist mood updates immediately for lightweight check-in behavior.
     async function selectMood(mood) {
       applyMoodSelection(mood);
 
       const selectedBtn = document.querySelector(`[data-mood="${mood}"]`);
       
       // Keep page logic simple by delegating storage details to JournalStore.
-      await JournalStore.saveMood(currentUserKey, mood);
+      if (window.JournalStore && typeof window.JournalStore.saveMood === 'function') {
+        await window.JournalStore.saveMood(currentUserKey, mood);
+      }
 
       if (selectedBtn) {
         selectedBtn.style.transform = 'scale(1.1)';
@@ -258,22 +255,21 @@
       }
     }
     
-    // Persist journal content and route to the correct next page.
     async function submitJournal(event) {
       event.preventDefault();
       
       const journalEntry = document.getElementById('dailyEntry').value;
 
       let savedEntry = null;
-      if (typeof JournalStore.saveOrUpdateTodayEntry === 'function') {
-        savedEntry = await JournalStore.saveOrUpdateTodayEntry(currentUserKey, journalEntry, selectedMood);
-      } else if (typeof JournalStore.saveJournalEntry === 'function') {
-        savedEntry = await JournalStore.saveJournalEntry(currentUserKey, journalEntry, selectedMood);
+      if (window.JournalStore && typeof window.JournalStore.saveOrUpdateTodayEntry === 'function') {
+        savedEntry = await window.JournalStore.saveOrUpdateTodayEntry(currentUserKey, journalEntry, selectedMood);
+      } else if (window.JournalStore && typeof window.JournalStore.saveJournalEntry === 'function') {
+        savedEntry = await window.JournalStore.saveJournalEntry(currentUserKey, journalEntry, selectedMood);
       }
 
       if (!savedEntry) {
-        const details = (typeof JournalStore.getLastError === 'function')
-          ? JournalStore.getLastError()
+        const details = (window.JournalStore && typeof window.JournalStore.getLastError === 'function')
+          ? window.JournalStore.getLastError()
           : '';
         alert(`We could not save your journal entry. ${details || 'Please try again.'}`);
         return;
@@ -284,7 +280,6 @@
       window.location.href = isEditMode ? '/assets/daily-checkin.html' : '/assets/home.html';
     }
 
-    // Log out with a safe redirect fallback for async identity widget behavior.
     function handleLogout() {
       const redirectToLogin = () => {
         window.location.assign('/assets/login.html');
@@ -312,9 +307,6 @@
         result.then(safeRedirect).catch(safeRedirect);
       }
     }
-    window.selectMood = selectMood;
-    window.submitJournal = submitJournal;
-    window.handleLogout = handleLogout;
   </script>
   
   <style>

@@ -56,21 +56,15 @@
     <span style="font-weight: 700; font-size: 18px;">HELP</span>
   </a>
 
-  <script type="importmap">
-    {
-      "imports": {
-        "@supabase/supabase-js": "https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm"
-      }
-    }
-  </script>
-  <script type="module">
-    // Daily check-in module: resolves identity and renders recent journal history.
-    import JournalStore from '/js/subDBs/journal-store.js';
-    import { syncStoredDisplayName } from '/js/identity-display.js';
-
+  <script src="/js/identity-display.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="/js/databaseManager.js"></script>
+  <script src="/js/journal-store.js"></script>
+  <script>
     let currentUserKey = null;
 
     window.addEventListener('load', async () => {
+      const identityDisplay = window.IdentityDisplayName || {};
       if (window.netlifyIdentity) {
         const apiUrl = `${window.location.origin}/.netlify/identity`;
         window.netlifyIdentity.init({ APIUrl: apiUrl });
@@ -85,10 +79,14 @@
             return;
           }
 
-          const name = syncStoredDisplayName(user);
+          const name = (typeof identityDisplay.syncStoredDisplayName === 'function')
+            ? identityDisplay.syncStoredDisplayName(user)
+            : '';
 
-          currentUserKey = await JournalStore.resolveUserKey(user);
-          await renderHistory();
+          if (window.JournalStore && typeof window.JournalStore.resolveUserKey === 'function') {
+            currentUserKey = await window.JournalStore.resolveUserKey(user);
+            await renderHistory();
+          }
         };
 
         const currentUser = window.netlifyIdentity.currentUser();
@@ -107,17 +105,16 @@
       await renderHistory();
     });
 
-    // Navigate back to the dashboard.
     function goBack() {
       window.location.assign('/assets/home.html');
     }
-    window.goBack = goBack;
 
-    // Render the last N journal entries in the history card.
     async function renderHistory() {
       const historyList = document.getElementById('historyList');
 
-      const entries = await JournalStore.getLastJournalEntries(currentUserKey, 10);
+      const entries = (window.JournalStore && typeof window.JournalStore.getLastJournalEntries === 'function')
+        ? await window.JournalStore.getLastJournalEntries(currentUserKey, 10)
+        : [];
 
       if (!entries.length) {
         historyList.innerHTML = `
@@ -149,7 +146,6 @@
       }).join('');
     }
 
-    // Convert a mood keyword to the matching emoji for list display.
     function getMoodEmoji(mood) {
       if (mood === 'happy') return '😊';
       if (mood === 'neutral') return '😐';
@@ -157,7 +153,6 @@
       return '📝';
     }
 
-    // Capitalize the first character for user-facing labels.
     function capitalize(value) {
       if (!value) {
         return '';
@@ -166,7 +161,6 @@
       return value.charAt(0).toUpperCase() + value.slice(1);
     }
 
-    // Escape untrusted entry text before injecting into HTML.
     function escapeHtml(text) {
       const div = document.createElement('div');
       div.textContent = text || '';

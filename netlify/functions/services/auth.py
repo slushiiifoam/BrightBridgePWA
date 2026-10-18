@@ -1,10 +1,10 @@
 from fastapi import HTTPException, status
 from pwdlib import PasswordHash
-
+import uuid
 from config.settings import settings
-
+from infrastructure.jwt_provider import Jwt_Manager
 from schemas.auth import User, ChangePasswordInfo, RoleChangeRequest, BanRequest, UnbanRequest
-
+from infrastructure.supabase_repository import SupabaseRepository
 """
 This is the class that will manage the authentication information & jwt of users
 """
@@ -13,26 +13,28 @@ class Auth_Service:
     Constructor for the Auth_Manager
     Params: database (User_DB)
     """
-    def __init__ (self, database):
+    def __init__(self, db: SupabaseRepository, jwt_manager: Jwt_Manager):
         self.password_hash = PasswordHash.recommended()
-        self.auth = database.collection
+        self.db = db
+        self.jwt_manager = jwt_manager
+
 
     """
     Function that creates users and stores them in the database
     Params: user (User) 
     """
-    async def create_user(self, user : User):
+    """async def create_user(self, user : User):
         user_data = user.model_dump()
         user_object['password'] = self.hash_password(user.password)
-        return await self.auth.insert_one(user_object)
+        return await self.auth.insert_one(user_object)"""
 
     """
     Function that gets users
     Params: username (str)
     Returns: result of whether they can find an entry with that username
     """
-    async def get_user(self, username : str):
-        return await self.auth.find_one({"username" : username})
+    """async def get_user(self, username : str):
+        return await self.auth.find_one({"username" : username})"""
 
     """
     Function that sets uuids
@@ -40,18 +42,18 @@ class Auth_Service:
             uuid (uuid)
     Returns: result of whether the uuid has been updated
     """
-    async def set_uuid(self, username : str, uuid : str):
+    """async def set_uuid(self, username : str, uuid : str):
         result = await self.auth.update_one({"username" : username}, 
                                                     {"$set" : {"uuid" : uuid}})
-        return result.modified_count > 0
+        return result.modified_count > 0"""
 
     """
     Function that confirms a user's uuid
     Params: username (str)
             uuid (uuid)
     """
-    async def confirm_uuid(self, uuid : str):
-        return await self.auth.find_one({"uuid" : uuid})
+    """async def confirm_uuid(self, uuid : str):
+        return await self.auth.find_one({"uuid" : uuid})"""
 
     """
     Function that gets users
@@ -59,7 +61,7 @@ class Auth_Service:
             old_password (str)
             new_password (str)
     """
-    async def change_password(self, change_password_info : ChangePasswordInfo):
+    """async def change_password(self, change_password_info : ChangePasswordInfo):
         user = await self.auth.find_one({"username" : change_password_info.username})
 
         if not user or not self.verify_password(change_password_info.old_password, user['password']):
@@ -72,7 +74,7 @@ class Auth_Service:
             { 'password' : hashed_new_password }
         }
 
-        return (await self.auth.update_one(query_filter, update_operation)).modified_count > 0
+        return (await self.auth.update_one(query_filter, update_operation)).modified_count > 0"""
 
     """
     Function that hashes the password
@@ -123,17 +125,66 @@ class Auth_Service:
     """
     Function that changes the roles of a user
     """
-    async def change_role(self, request : RoleChangeRequest):
+    """async def change_role(self, request : RoleChangeRequest):
         result = await self.auth.update_one({"username" : request.target}, 
                                             {"$set" : {"role" : request.role}})
-        return result.modified_count > 0
+        return result.modified_count > 0"""
 
     """
     Function that bans users
     Params: request : BanRequest
     Returns: whether the user was banned
     """
-    async def update_ban_status(self, request : BanRequest):
+    """async def update_ban_status(self, request : BanRequest):
         result = await self.auth.update_one({"username" : request.target},
                                             {"$set" : {"banned" : request.banned, "reason" : request.reason}})
-        return result.modified_count > 0
+        return result.modified_count > 0"""
+    """
+    Function that creates a JWT for a user
+    params: email (str)
+    returns: jwt (str)
+    """
+    def create_jwt(self, email : str)-> str:
+        email = email.strip().lower()
+        token = self.jwt_manager.create_access_token(email,duration=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
+        return token.access_token
+    
+    """
+    Function that creates a refresh uuid and stores it for the user
+    params: email (str)
+    returns: the refresh uuid (str)
+    """
+    def create_refresh_uuid(self, email : str)-> str:
+        email = email.strip().lower()
+        user = self.db.search("users", fields="email", column="email", value=email)
+        if not user:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="User not found",
+            )
+        refresh_uuid = str(uuid.uuid4())
+        self.db.insert("refresh_tokens", {"token": refresh_uuid, "email": email})
+        return refresh_uuid
+    
+    """
+    Function that creates a new jwt for a user if the refresh uuid is valid
+    params: refresh_uuid (str)
+    returns: new jwt (str)
+    """
+    def refresh_jwt(self, refresh_uuid : str)-> str:
+        invalid_token = HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid refresh token",
+        )
+
+        try:
+            uuid.UUID(refresh_uuid)
+        except (ValueError, TypeError):
+            raise invalid_token
+        
+        user = self.db.search("refresh_tokens", fields="email", column="token", value=refresh_uuid)
+
+        if not user:
+            raise invalid_token
+        return self.create_jwt(user[0]['email'])
+    
