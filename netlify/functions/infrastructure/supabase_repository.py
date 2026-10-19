@@ -27,7 +27,12 @@ class SupabaseRepository:
         response = self.client.table(table).insert(data).execute()
         return len(response.data) > 0
 
-    def upsert(self, table: str, data: dict) -> bool:
+    def upsert(self, table: str, data: dict, onConflict : str = None) -> bool:
         """Insert a new row, or update it if a matching row already exists."""
+
+        if onConflict is not None:
+            response = self.client.table(table).upsert(data, on_conflict=onConflict).execute()
+            return len(response.data) > 0
+
         response = self.client.table(table).upsert(data).execute()
         return len(response.data) > 0

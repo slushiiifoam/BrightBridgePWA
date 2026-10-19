@@ -1,6 +1,8 @@
-from netlify.functions.routers.auth import router as auth_router
-from netlify.functions.routers.resources import router as resource_router
-from netlify.functions.routers.test import router as test_router
+from routers.auth import router as auth_router
+from routers.resources import router as resource_router
+from routers.test import router as test_router
+
+from routers.privileges import router as privileges_router
 
 from infrastructure.cookie_processor import verify_auth_cookie
 
@@ -10,7 +12,7 @@ from fastapi import Depends
 Setup routers for fastapi app
 """
 def setup_routers(app):
-    public_routers = [auth_router, resource_router]
+    public_routers = [auth_router, resource_router, privileges_router]
 
     protected_routers = [test_router]
 

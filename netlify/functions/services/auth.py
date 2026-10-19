@@ -1,5 +1,7 @@
 from fastapi import HTTPException, status
 import uuid
+import hashlib
+import hmac
 from config.settings import settings
 from infrastructure.jwt_provider import Jwt_Manager
 from schemas.auth import User, ChangePasswordInfo, RoleChangeRequest, BanRequest, UnbanRequest
@@ -16,11 +18,21 @@ class Auth_Service:
         self.db = db
         self.jwt_manager = jwt_manager
 
+    def hash_uuid(self, plain_uuid: str) -> str:
+        """Hashes a raw UUID string into a fast 64-character SHA-256 hex string."""
+        return hashlib.sha256(plain_uuid.encode("utf-8")).hexdigest()
+
+    def verify_uuid(self, cls, plain_uuid: str, hashed_uuid: str) -> bool:
+        """Verifies a raw UUID against its SHA-256 hash in constant time."""
+        computed_hash = cls.hash_uuid(plain_uuid)
+        return hmac.compare_digest(computed_hash, hashed_uuid)
+
+
     """
     Function that checks if the user is an admin
     """
-    async def confirm_role(self, username : str, role : str):
-        user = await self.get(username)
+    def confirm_role(self, username : str, role : str):
+        user = self.get(username)
         return user and user['role'] == role
 
     """
@@ -47,19 +59,40 @@ class Auth_Service:
                 detail="User not found",
             )
         refresh_uuid = str(uuid.uuid4())
-        self.db.upsert("refresh_tokens", {"token": refresh_uuid, "email": email})
+
+        hashed_uuid = self.hash_uuid(refresh_uuid)
+
+        self.db.update("users", "email", email,  {"refresh_token": hashed_uuid})
         return refresh_uuid
 
-    def confirm_uuid(self, uuid: str) -> str:
-        user = self.db.search("users", fields="email", column="uuid", value=uuid)
+    def refresh_uuid(self, old_uuid : str) -> str:
+        hashed_old_uuid = self.hash_uuid(old_uuid)
 
-        if not user:
+        new_uuid = str(uuid.uuid4())
+        hashed_new_uuid = self.hash_uuid(new_uuid)
+
+        result = self.db.update("users", "refresh_token", hashed_old_uuid, {"refresh_token" : hashed_new_uuid})
+
+        if result:
+            return new_uuid
+
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid or expired refresh token",
+        )
+
+    def confirm_uuid(self, uuid: str) -> str:
+        hashed_old_uuid = self.hash_uuid(uuid)
+
+        user = self.db.search("users", fields="email", column="refresh_token", value=hashed_old_uuid)
+
+        if not user or len(user) <= 0:
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="invalid request"
             )
 
-        return user
+        return user[0]["email"]
     
     """
     Function that creates a new jwt for a user if the refresh uuid is valid
@@ -75,7 +108,7 @@ class Auth_Service:
         
         confirmed_email = self.confirm_uuid(refresponseh_token)
 
-        jwt = self.create_jwt({"sub" : confirmed_email})
+        jwt = self.jwt_manager.create_access_token(confirmed_email, duration=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
 
-        return jwt
+        return jwt.access_token
     

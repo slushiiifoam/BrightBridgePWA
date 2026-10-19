@@ -30,10 +30,10 @@ async def lifespan(app: FastAPI):
                                                format='%(asctime)s - %(levelname)s - %(message)s')
 
     database = SupabaseRepository(settings.SUPABASE_URL, settings.SUPABASE_KEY)
-
-    app.state.jwt_manager = Jwt_Manager(database)
-    app.state.auth_service = Auth_Service(database, app.state.jwt_manager)
-    app.state.resource_serve = Resource_Service(database)
+    jwt_manager = Jwt_Manager(database)
+    
+    app.state.auth_service = Auth_Service(database, jwt_manager)
+    app.state.resource_service = Resource_Service(database)
 
 
     yield

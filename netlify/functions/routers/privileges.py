@@ -26,7 +26,7 @@ Endpoint for checking the health of the router
 """
 @limiter.limit("10/minute")
 @router.get("/", status_code=status.HTTP_200_OK)
-def health():
+def health(request : Request):
     return {"detail": "privileges router is healthy"}
 
 """

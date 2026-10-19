@@ -35,7 +35,7 @@ Global error handler for HTTP exceptions
 async def http_exception_handler(request: Request, e: HTTPException):
     # Just let FastAPI handle it normally so 401s, 404s, etc., stay intact
     logger.error(f"HTTPException detected! {str(e)}")
-    return await http_exception_handler(request, exc)
+    return await http_exception_handler(request, e)
 
 """
 Global error handler for validation errors

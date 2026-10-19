@@ -15,7 +15,7 @@ from services.auth import Auth_Service
 
 from pydantic import BaseModel
 
-class Login(BaseModel):
+class GetJWT(BaseModel):
     email : str
 
 from infrastructure.ratelimiter import limiter
@@ -37,7 +37,7 @@ Route for logging in users
 """
 @router.post("/getJWTTokens", status_code=status.HTTP_200_OK)
 @limiter.limit("10/minute")
-async def login(login_info : Login, 
+async def getJWT(login_info : GetJWT, 
                 background_tasks: BackgroundTasks, 
                 auth_service: Annotated[Auth_Service, Depends(get_auth_service)],
                 request: Request,
@@ -48,13 +48,13 @@ async def login(login_info : Login,
     background_tasks.add_task(log_user_activity, login_info.email, "SUCCESSFUL LOGIN")
 
     response.set_cookie(key="access_token",
-                   value=jwt.access_token,
+                   value=jwt,
                    samesite="Strict",
                    secure=True,
                    httponly=True,
                    max_age=1800)
 
-    user_uuid = await auth_service.create_refresh_uuid(login_info.email)
+    user_uuid = auth_service.create_refresh_uuid(login_info.email)
 
     response.set_cookie(key="refresponseh_token",
                    value=user_uuid,
@@ -70,19 +70,31 @@ Route for refreashing tokens
 """
 @limiter.limit("10/minute")
 @router.get("/refresponseh", status_code=status.HTTP_200_OK)
-async def refreash_token(
+async def refresh_token(
     auth_service: Annotated[Auth_Service, Depends(get_auth_service)],
     request: Request,
     response: Response,
     refresponseh_token: Annotated[str | None, Cookie(alias="refresponseh_token")] = None,
 ):
+
+    logger.info(f"refreash token is {refresponseh_token}")
+    
     jwt = auth_service.refresh_jwt(refresponseh_token)
 
     response.set_cookie(key="access_token",
-                    value=jwt.access_token,
+                    value=jwt,
                     samesite="Strict",
                     secure=True,
                     httponly=True,
                     max_age=1800)
+
+    user_uuid = auth_service.refresh_uuid(refresponseh_token)
+    
+    response.set_cookie(key="refresponseh_token",
+                    value=user_uuid,
+                    samesite="Strict",
+                    secure=True,
+                    httponly=True,
+                    max_age=604800)
 
     return {"detail" : "successfully refresponsehed token"}
