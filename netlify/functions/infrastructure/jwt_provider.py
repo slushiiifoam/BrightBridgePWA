@@ -47,10 +47,23 @@ class Jwt_Manager:
     Returns: a decoded jwt
     """
     def decode(self, token):
-        return jwt.decode(token, self.secret_key, algorithms=[self.hash_function])
+        try:
+            return jwt.decode(token, self.secret_key, algorithms=[self.hash_function])
+        except:
+            return None
 
-    async def get_user(self, username : str):
-        return await self.user_database.get(username)
+    def is_valid_jwt(self, token):
+        decoded_token = self.decode(token)
+
+        if decoded_token is None:
+            return None 
+
+        decoded_email = decoded_token.get("sub")
+
+        if len(self.user_database.search("users", "email", "email", decoded_email)) > 0:
+            return None
+
+        return self.user_database.search("users", "email", "uuid", decoded_email)[0]['uuid']
 
     """
     Function for decoding jwts

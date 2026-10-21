@@ -2,13 +2,15 @@ from fastapi import Request, HTTPException, status, Response
 
 # 1. Define the auth dependency function
 async def verify_auth_cookie(request: Request, response: Response):
-    jwt_token = request.cookies.get("jwt")
-    uuid_token = request.cookies.get("uuid")
+    jwt_token = request.cookies.get("access_token")
+    uuid_token = request.cookies.get("refresponseh_token")
 
-    jwt_manager = request.app.state.jwt_manager
+    auth_service = request.app.state.auth_service
 
-    if jwt_token and jwt_manager.is_valid_jwt(jwt_token):
-        request.state.user = jwt_manager.decode(jwt_token)
+    user_uuid = auth_service.is_valid_jwt(jwt_token)
+
+    if jwt_token and user_uuid:
+        request.state.uuid = user_uuid
         return
 
     if not uuid_token:
@@ -17,19 +19,29 @@ async def verify_auth_cookie(request: Request, response: Response):
             detail="User not authorized. Please authenticate"
         )
 
-    regenerated_jwt = await jwt_manager.regenerate_jwt_from_uuid(uuid_token)
+    regenerated_jwt = auth_service.refresh_jwt(uuid_token)
     if not regenerated_jwt:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="User not authorized. Please authenticate"
         )
 
-    user_uuid = jwt_manager.decode(regenerated_jwt)
+    user_uuid = auth_service.is_valid_jwt(regenerated_jwt)
     request.state.uuid = user_uuid
+
+    user_cookie_uuid = auth_service.refresh_uuid(uuid_token)
+        
+    response.set_cookie(
+        key="refresponseh_token",
+        value=user_cookie_uuid,
+        samesite="Strict",
+        secure=True,
+        httponly=True,
+        max_age=604800)
 
     # Directly set the cookie on the response object injected by FastAPI
     response.set_cookie(
-        key="jwt",
+        key="access_token",
         value=regenerated_jwt,
         max_age=1000,
         httponly=True,

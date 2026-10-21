@@ -44,6 +44,9 @@ class Auth_Service:
         email = email.strip().lower()
         token = self.jwt_manager.create_access_token(email, duration=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
         return token.access_token
+
+    def is_valid_jwt(self, jwt):
+        return self.jwt_manager.is_valid_jwt(jwt)
     
     """
     Function that creates a refresh uuid and stores it for the user
