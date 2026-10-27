@@ -98,9 +98,7 @@ export default function LoginPage() {
             Use email and password or choose Continue with Google in the secure Netlify window.
           </p>
           <StatusMessage tone="error">{authError}</StatusMessage>
-          <p className="login-note text-white">
-            Signing out of BrightBridge does not sign you out of Google, so Google may reuse its active account.
-          </p>
+          
           <Link to="/" className="text-link text-white">Back to welcome</Link>
         </section>
       </main>
