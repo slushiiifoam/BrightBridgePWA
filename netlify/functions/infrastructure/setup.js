@@ -1,7 +1,9 @@
-const limiter = require('./ratelimiter')
+import limiter from './ratelimiter.js'
+import cookieParser from 'cookie-parser';
 
 function setup_infrastructure(app){
     app.use(limiter);
+    app.use(cookieParser())
 };
 
-module.exports = setup_infrastructure
+export default setup_infrastructure;

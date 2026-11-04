@@ -1,4 +1,4 @@
-const { rateLimit } = require('express-rate-limit');
+import { rateLimit } from 'express-rate-limit';
 
 /**
  * rate limiter to prevent DDOS attacks
@@ -12,4 +12,4 @@ const limiter = rateLimit({
   legacyHeaders: false,     // Disable X-RateLimit-* headers
 });
 
-module.exports = limiter
+export default limiter;
