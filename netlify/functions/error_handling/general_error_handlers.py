@@ -26,7 +26,7 @@ def runtime_error_handler(request: Request, e : RuntimeError):
 
     return JSONResponse(
         status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-        content={"detail" : "A rntime error has triggered"}
+        content={"detail" : "A runtime error has triggered"}
     )
 
 """

@@ -23,6 +23,10 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 Class for managing jwts
 """
 class Jwt_Manager:
+
+    """
+    Constructor 
+    """
     def __init__ (self, user_database):
         self.secret_key = settings.SECRET_KEY
         self.hash_function = settings.HASH_ALGORITHM
@@ -46,13 +50,16 @@ class Jwt_Manager:
     Params: token (jwttoken) -- jwt to decode
     Returns: a decoded jwt
     """
-    def decode(self, token):
+    def decode(self, token: str) -> dict:
         try:
             return jwt.decode(token, self.secret_key, algorithms=[self.hash_function])
         except:
             return None
 
-    def is_valid_jwt(self, token):
+    """
+    Function that will check whether a jwt token is valid or not 
+    """
+    def is_valid_jwt(self, token: str) -> str | None: 
         decoded_token = self.decode(token)
 
         if decoded_token is None:

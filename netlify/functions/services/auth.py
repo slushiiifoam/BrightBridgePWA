@@ -10,30 +10,37 @@ from infrastructure.supabase_repository import SupabaseRepository
 This is the class that will manage the authentication information & jwt of users
 """
 class Auth_Service:
+
     """
     Constructor for the Auth_Manager
     Params: database (User_DB)
     """
-    def __init__(self, db: SupabaseRepository, jwt_manager: Jwt_Manager):
+    def __init__(self, db: SupabaseRepository, jwt_manager: Jwt_Manager) -> None:
         self.db = db
         self.jwt_manager = jwt_manager
+        self.role_set = set("admin", "editor")
 
+    """Hashes a raw UUID string into a fast 64-character SHA-256 hex string."""
     def hash_uuid(self, plain_uuid: str) -> str:
-        """Hashes a raw UUID string into a fast 64-character SHA-256 hex string."""
         return hashlib.sha256(plain_uuid.encode("utf-8")).hexdigest()
 
+    """Verifies a raw UUID against its SHA-256 hash in constant time."""
     def verify_uuid(self, cls, plain_uuid: str, hashed_uuid: str) -> bool:
-        """Verifies a raw UUID against its SHA-256 hash in constant time."""
         computed_hash = cls.hash_uuid(plain_uuid)
         return hmac.compare_digest(computed_hash, hashed_uuid)
 
 
     """
-    Function that checks if the user is an admin
+    Function that checks if the user is an admin. 
+    Params: username (str), role (str)
+    returns user_confirmation (bool) -- whether the user is a role or not
     """
-    def confirm_role(self, username : str, role : str):
-        user = self.get(username)
-        return user and user['role'] == role
+    def confirm_role(self, username : str, role : str) -> bool:
+        if role not in self.role_set:
+            raise ValueError("Invalid role")
+
+        user = self.db.search(f"{role}s", "*", "uuid", username)
+        return user[0] is not None
 
     """
     Function that creates a JWT for a user
@@ -57,9 +64,8 @@ class Auth_Service:
         email = email.strip().lower()
         user = self.db.search("users", fields="email", column="email", value=email)
         if not user:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="User not found",
+            raise ValueError(
+                "User not found",
             )
         refresh_uuid = str(uuid.uuid4())
 
@@ -68,6 +74,11 @@ class Auth_Service:
         self.db.update("users", "email", email,  {"refresh_token": hashed_uuid})
         return refresh_uuid
 
+    """
+    Refreshes a new UUID for a user after given an old one.
+    Params: old_uuid (str)
+    Returns: new_uuid (str)
+    """
     def refresh_uuid(self, old_uuid : str) -> str:
         hashed_old_uuid = self.hash_uuid(old_uuid)
 
@@ -79,20 +90,23 @@ class Auth_Service:
         if result:
             return new_uuid
 
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid or expired refresh token",
+        raise ValueError(
+            "invalid request",
         )
 
+    """
+    Confirms whether a uuid is valid and returns an email
+    Params: uuid (str)
+    Returns: email (str)
+    """
     def confirm_uuid(self, uuid: str) -> str:
         hashed_old_uuid = self.hash_uuid(uuid)
 
         user = self.db.search("users", fields="email", column="refresh_token", value=hashed_old_uuid)
 
         if not user or len(user) <= 0:
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="invalid request"
+            raise ValueError(
+                "invalid request"
             )
 
         return user[0]["email"]
@@ -104,9 +118,8 @@ class Auth_Service:
     """
     def refresh_jwt(self, refresponseh_token : str)-> str:
         if not refresponseh_token:
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Refresponseh token cookie is missing."
+            raise ValueError(
+                "invalid request"
             )
         
         confirmed_email = self.confirm_uuid(refresponseh_token)
