@@ -1,11 +1,12 @@
 // netlify/functions/api.js
-const express = require('express');
-const serverless = require('serverless-http');
+import express from 'express'
+import serverless from 'serverless-http'
 
-const setup_infrastructure = require('./infrastructure/ratelimiter')
-const setup_routers = require('./routers/setup')
+import setup_infrastructure from './infrastructure/setup.js'
+import setup_routers from './routers/setup.js'
 
 const app = express();
+const router = express.Router();
 
 // Middleware
 app.use(express.json());
@@ -16,8 +17,9 @@ router.get('/', (req, res) => {
 });
 
 //sets up routers
-setup_routers(app);
 setup_infrastructure(app);
+app.use(router);
+setup_routers(app);
 
 // Export the handler wrapped with serverless-http
-module.exports.handler = serverless(app);
+export default serverless(app);
