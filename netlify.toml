@@ -7,6 +7,7 @@
   node_bundler = "esbuild"
 
 [[redirects]]
+<<<<<<< HEAD
   from = "/api/*"
   to = "/.netlify/functions/api/:splat"
   status = 200
@@ -15,3 +16,11 @@
   from = "/*"
   to = "/index.html"
   status = 200
+=======
+  from = "/*"
+  to = "/index.html"
+  status = 200
+
+# Environment variables (set these in Netlify UI)
+# SUPABASE_URL and SUPABASE_PUBLISHABLE_KEY
+>>>>>>> BrightBridge-PWA/main

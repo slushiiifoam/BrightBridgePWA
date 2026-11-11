@@ -1,0 +1,10 @@
+{
+  "name": "BrightBridge",
+  "short_name": "BrightBridge",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#5B4B8A",
+  "description": "BrightBridge trauma-informed relationship support app"
+}

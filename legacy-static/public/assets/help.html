@@ -10,69 +10,70 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   
-  <title>BrightBridge - Friend Help</title>
+  <title>BrightBridge - Help & Support</title>
   
-  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="/assets/css/styles.css">
 </head>
 <body class="full-height">
-    <header class="help-header">
+  
+  <header class="help-header">
     <button class="back-button" onclick="goBack()" aria-label="Go back">
       ← Back
     </button>
     <h1 class="text-center text-white">We're Here For You</h1>
-    </header>
-
-    <main class="container" style="flex: 1; padding-top: var(--spacing-md); padding-bottom: 100px;">
+  </header>
+  
+  <main class="container" style="flex: 1; padding-top: var(--spacing-md); padding-bottom: 100px;">
     
     <section class="help-selection fade-in" id="helpSelection">
-      <p class="intro-text">Friendly Relationships</p>
+      <p class="intro-text">Choose what you need right now:</p>
       
       <div class="help-category">
-        <a class="help-category-btn" href="videos/romantic_intro.html" aria-label="Watch Romantic Intro Video">
+        <button class="help-category-btn crisis-btn" onclick="showCrisisOptions()">
           <div class="btn-content">
-            <span class="btn-icon">🎬</span>
+            <span class="btn-icon">🆘</span>
             <div class="btn-text">
-              <h3>Friendship: Intro Video</h3>
-              <p>Short overview and tips</p>
+              <h3>Crisis Support</h3>
+              <p>I need immediate help</p>
             </div>
             <span class="btn-arrow">→</span>
           </div>
-        </a>
+        </button>
       </div>
-
+      
       <div class="help-category">
-        <a class="help-category-btn" href="videos/communication.html" aria-label="Watch Communication Video">
+        <button class="help-category-btn" onclick="showRelationshipOptions()">
           <div class="btn-content">
-            <span class="btn-icon">🗣️</span>
+            <span class="btn-icon">💭</span>
             <div class="btn-text">
-              <h3>Communication</h3>
-              <p>How to talk about feelings and boundaries</p>
+              <h3>Talk About a Relationship</h3>
+              <p>Romantic, friend, or family</p>
             </div>
             <span class="btn-arrow">→</span>
           </div>
-        </a>
+        </button>
       </div>
-
+      
       <div class="help-category">
-        <a class="help-category-btn" href="videos/boundaries.html" aria-label="Watch Boundaries Video">
+        <button class="help-category-btn" onclick="window.location.href='grounding.html'">
           <div class="btn-content">
-            <span class="btn-icon">🔒</span>
+            <span class="btn-icon">🧘</span>
             <div class="btn-text">
-              <h3>Boundaries</h3>
-              <p>Setting and respecting limits</p>
+              <h3>Calm Down Tools</h3>
+              <p>Breathing & grounding exercises</p>
             </div>
             <span class="btn-arrow">→</span>
           </div>
-        </a>
+        </button>
       </div>
-
+      
       <div class="help-category">
-        <button class="help-category-btn" onclick="window.location.href='quiz.html'" aria-label="Take the relationship quiz">
+        <button class="help-category-btn" onclick="window.location.href='resources.html'">
           <div class="btn-content">
-            <span class="btn-icon">📝</span>
+            <span class="btn-icon">📚</span>
             <div class="btn-text">
-              <h3>Take the Quiz</h3>
-              <p>Quick quiz to identify next steps</p>
+              <h3>Resources & Info</h3>
+              <p>Learn about healthy relationships</p>
             </div>
             <span class="btn-arrow">→</span>
           </div>
@@ -200,11 +201,11 @@
       </div>
     </section>
     
-    </main>
-    
-    <a href="https://www.weather.com" class="quick-exit" aria-label="Quick exit to weather website">
-        quick exit
-    </a>
+  </main>
+  
+  <a href="https://www.weather.com" class="quick-exit" aria-label="Quick exit to weather website">
+    quick exit
+  </a>
   
   <script>
     // Page load
@@ -217,13 +218,27 @@
       window.history.back();
     }
     
+    // Show crisis options
+    function showCrisisOptions() {
+      document.getElementById('helpSelection').style.display = 'none';
+      document.getElementById('crisisSection').style.display = 'block';
+      window.scrollTo(0, 0);
+    }
+    
     // Hide crisis options
     function hideCrisisOptions() {
       document.getElementById('crisisSection').style.display = 'none';
       document.getElementById('helpSelection').style.display = 'block';
       window.scrollTo(0, 0);
     }
-
+    
+    // Show relationship options
+    function showRelationshipOptions() {
+      document.getElementById('helpSelection').style.display = 'none';
+      document.getElementById('relationshipSection').style.display = 'block';
+      window.scrollTo(0, 0);
+    }
+    
     // Hide relationship options
     function hideRelationshipOptions() {
       document.getElementById('relationshipSection').style.display = 'none';
@@ -231,8 +246,27 @@
       window.scrollTo(0, 0);
     }
     
+    function showRelationshipHelp(type) {
+      const typeNames = {
+        romantic: 'Romantic Relationships',
+        friend: 'Friendships',
+        family: 'Family Relationships',
+        other: 'Other Relationships'
+      };
+      const pages = {
+        romantic: 'romantic.html',
+        friend: 'friend.html',
+        family: 'family.html',
+        other: 'otherHelp.html'
+      };
+      if(pages[type]){
+        window.location.href = pages[type];
+      }
+      // alert(`Resources for ${typeNames[type]} are coming soon! For now, you can use the Crisis Hotlines or Grounding Tools.`);
+    }
   </script>
-    <style>
+  
+  <style>
     /* Help page specific styles */
     body {
       opacity: 0;
@@ -317,7 +351,6 @@
     }
     
     .help-category-btn {
-      display: block;
       width: 100%;
       background: var(--white);
       border: 2px solid var(--gray);
@@ -327,8 +360,6 @@
       transition: all var(--transition-normal);
       box-shadow: var(--shadow-sm);
       text-align: left;
-      text-decoration: none;
-      color: inherit;
     }
     
     .help-category-btn:hover {
@@ -537,5 +568,7 @@
         font-size: 32px;
       }
     }
-    </style>
+  </style>
+  
 </body>
+</html>
