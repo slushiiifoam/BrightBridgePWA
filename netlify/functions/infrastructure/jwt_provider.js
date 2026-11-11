@@ -1,5 +1,5 @@
 import jwt from 'jsonwebtoken';
-import { settings } from '../../config/settings.js';
+import { settings } from '../config/settings.js';
 
 /**
  * Class for managing JWT generation, decoding, and authentication middleware

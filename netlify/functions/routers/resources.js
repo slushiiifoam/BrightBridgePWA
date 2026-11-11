@@ -33,7 +33,7 @@ router.get('/', (req, res) => {
 router.post('/retrieve', async (req, res) => {
   try {
     const body = selectBodySchema.parse(req.body || {});
-    const resources = await resourceService.getResources(body);
+    const resources = await resource_service.getResources(body);
 
     return res.status(200).json(resources);
   } catch (error) {
@@ -59,7 +59,7 @@ router.post('/upsert', async (req, res) => {
       delete docInfoDict.id;
     }
 
-    const resultStatus = await resourceService.upsertResource(userUuid, docInfoDict);
+    const resultStatus = await resource_service.upsertResource(userUuid, docInfoDict);
 
     return res.status(200).json({ status: resultStatus });
   } catch (error) {
@@ -84,7 +84,7 @@ router.delete('/delete/:resource_id', async (req, res) => {
       return res.status(400).json({ detail: 'resource_id must be a valid integer' });
     }
 
-    const resultStatus = await resourceService.removeResource(userUuid, resourceId);
+    const resultStatus = await resource_service.removeResource(userUuid, resourceId);
 
     return res.status(200).json({ status: resultStatus });
   } catch (error) {
