@@ -3,7 +3,7 @@ import auth_router from './auth.js';
 import resources_router from './resources.js';
 import privileges_router from './privileges.js';
 
-import { verifyAuthCookie } from '../infrastructure/cookie_processor.js';
+import { verifyAuthCookie } from '../../infrastructure/cookie_processor.js';
 
 /**
  * 

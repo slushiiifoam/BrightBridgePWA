@@ -7,8 +7,8 @@ import { settings } from '../config/settings.js';
 export class AuthService {
   /**
    * Constructor for AuthService
-   * @param {import('../infrastructure/supabaseRepository.js').SupabaseRepository} db 
-   * @param {import('../infrastructure/jwtManager.js').JwtManager} jwtManager 
+   * @param {import('../api/infrastructure/supabaseRepository.js').SupabaseRepository} db 
+   * @param {import('../api/infrastructure/jwtManager.js').JwtManager} jwtManager 
    */
   constructor(db, jwtManager) {
     this.db = db;
