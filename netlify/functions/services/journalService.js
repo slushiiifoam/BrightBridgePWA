@@ -34,12 +34,12 @@ export class JournalService {
     return results;
   }
 
-  async getTodayJournal(data){
-    const uuid = data.uuid;
-    const date = data.created_date;
+  async getTodayJournal(input){
+    const uuid = input.uuid;
+    const date = input.created_date;
 
-    const results = await this.repo.client.from(this.table).select("*").eq('uuid', uuid).eq('created_date', date);
-    return results;
+    const {data, error} = await this.repo.client.from(this.table).select("*").eq('uuid', uuid).eq('created_date', date);
+    return data.length > 0 && !error;
   }
 
   /**
