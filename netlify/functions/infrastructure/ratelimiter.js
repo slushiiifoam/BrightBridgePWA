@@ -10,6 +10,14 @@ const limiter = rateLimit({
   statusCode: 429,          // Standard HTTP status code for rate limiting
   standardHeaders: 'draft-8', // Return standard rate limit info in headers
   legacyHeaders: false,     // Disable X-RateLimit-* headers
+  keyGenerator: (req) => {
+    return (
+      req.headers['x-nf-client-connection-ip'] ||
+      req.ip ||
+      req.socket?.remoteAddress ||
+      'unknown-client'
+    );
+  },
 });
 
 export default limiter;

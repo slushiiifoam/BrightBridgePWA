@@ -8,6 +8,8 @@ import setup_routers from './routers/setup.js'
 const app = express();
 const router = express.Router();
 
+app.set('trust proxy', 1);
+
 // Middleware
 app.use(express.json());
 
