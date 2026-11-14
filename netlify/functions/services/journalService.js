@@ -4,7 +4,7 @@ export class JournalService {
    */
   constructor(supabaseRepo) {
     this.repo = supabaseRepo;
-    this.table = 'journals';
+    this.table = 'journal_entry';
   }
 
   /**
