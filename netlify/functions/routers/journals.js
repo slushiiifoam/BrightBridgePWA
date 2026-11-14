@@ -82,9 +82,9 @@ try {
 journal_router.put('/', upsertJournal);
 
 // DELETE: DELETE /api/journals/:uuid
-journal_router.delete('/:uuid', async (req, res, next) => {
+journal_router.delete('/:uuid/:date', async (req, res, next) => {
 try {
-    const deleted = await journal_service.deleteJournal(req.params.uuid);
+    const deleted = await journal_service.deleteJournal(req.params.uuid, req.params.date);
     if (!deleted) {
     return res.status(404).json({ success: false, error: 'Journal entry not found or already deleted' });
     }
