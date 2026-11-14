@@ -6,11 +6,10 @@
 
 import dotenv from 'dotenv';
 import path from 'path';
-import { fileURLToPath } from 'url';
 import { z } from 'zod';
 
 // Load .env file from the current directory
-dotenv.config({ path: path.resolve(__dirname, '.env') });
+dotenv.config({ path: path.resolve(import.meta.dirname, '.env') });
 
 // Define the schema (equivalent to Pydantic BaseSettings)
 const settingsSchema = z.object({
