@@ -29,7 +29,7 @@ function setup_protected_routers(app){
   apiProtectedRouter.use('/journal', journal_router);
 
   // Mount parent protected router to the main app
-  app.use('/api', apiProtectedRouter);
+  app.use('/api/protected', apiProtectedRouter);
 
 };
 
