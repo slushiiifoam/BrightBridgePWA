@@ -62,10 +62,6 @@ export const verifyAuthCookie = async (req, res, next) => {
 
     return next();
   } catch (error) {
-    if (error instanceof ValueError) {
-      return res.status(401).json({ detail: error.message });
-    }
-
-    return res.status(500).json({ detail: error.message || 'Internal Server Error' });
+      return res.status(500).json({ detail: error.message || 'Internal Server Error' });
   }
 };
