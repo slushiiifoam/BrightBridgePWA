@@ -3,6 +3,7 @@ import auth_router from './auth.js';
 import resources_router from './resources.js';
 import privileges_router from './privileges.js';
 import journal_router from './journals.js';
+import test_router from './test.js'
 
 import { verifyAuthCookie } from '../infrastructure/cookie_processor.js';
 
@@ -27,6 +28,7 @@ function setup_protected_routers(app){
   apiProtectedRouter.use('/privileges', privileges_router);
   apiProtectedRouter.use('/resources', resources_router);
   apiProtectedRouter.use('/journal', journal_router);
+  apiProtectedRouter.use('/test', test_router);
 
   // Mount parent protected router to the main app
   app.use('/api/protected', apiProtectedRouter);
