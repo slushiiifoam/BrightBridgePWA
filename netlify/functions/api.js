@@ -20,7 +20,7 @@ router.get('/', (req, res) => {
 
 //sets up routers
 setup_infrastructure(app);
-app.use(router);
+app.use('/api', router);
 setup_routers(app);
 
 // Export the handler wrapped with serverless-http
