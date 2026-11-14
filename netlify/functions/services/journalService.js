@@ -18,7 +18,7 @@ export class JournalService {
       entry: data.entry ?? null,
     };
 
-    const success = await this.repo.insert(this.table, payload);
+    const success = await this.repo.upsert(this.table, payload);
     if (!success) {
       throw new Error('Failed to insert journal entry');
     }
