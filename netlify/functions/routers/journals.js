@@ -86,7 +86,7 @@ journal_router.delete('/:uuid/:date', async (req, res, next) => {
 try {
     const deleted = await journal_service.deleteJournal(req.params.uuid, req.params.date);
     if (!deleted) {
-    return res.status(404).json({ success: false, error: 'Journal entry not found or already deleted' });
+        return res.status(404).json({ success: false, error: 'Journal entry not found or already deleted' });
     }
     res.json({ success: true, message: 'Journal deleted successfully' });
 } catch (err) {
