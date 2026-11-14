@@ -12,7 +12,7 @@ export class JournalService {
    */
   async createJournal(data) {
     const payload = {
-      uuid: crypto.randomUUID(),
+      uuid: data.uuid,
       created_date: data.created_date,
       overall_emotion: data.overall_emotion ?? null,
       entry: data.entry ?? null,

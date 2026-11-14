@@ -3,10 +3,11 @@ import { z } from 'zod';
 import { journal_service } from '../services/setupService.js';
 
 const createJournalSchema = z.object({
+  uuid : z.string().uuid('Invalid user UUID'),
   created_date: z
     .string()
     .regex(/^\d{4}-\d{2}-\d{2}$/, 'Date must be formatted as YYYY-MM-DD'),
-  overall_emotion: z.boolean().nullable().optional().default(null),
+  overall_emotion: z.string().regex(/^[01]+$/, 'overall_emotion must be a bit string containing only 0s and 1s').nullable().optional().default(null),
   entry: z.string().nullable().optional().default(null),
 });
 
@@ -17,7 +18,10 @@ const journal_router = express.Router();
 // CREATE: POST /api/journals
 journal_router.post('/', async (req, res, next) => {
 try {
-    const validatedData = createJournalSchema.parse(req.body);
+    const uuid = req.uuid;
+    const payload = {...req.body, uuid};
+
+    const validatedData = createJournalSchema.parse(payload);
     const created = await journal_service.createJournal(validatedData);
     res.status(201).json({ success: true, data: created });
 } catch (err) {
