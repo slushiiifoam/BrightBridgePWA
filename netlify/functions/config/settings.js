@@ -9,7 +9,7 @@ import path from 'path';
 import { z } from 'zod';
 
 // Load .env file from the current directory
-dotenv.config({ path: path.resolve(import.meta.dirname, '.env') });
+// dotenv.config({ path: path.resolve(import.meta.dirname, '.env') });
 dotenv.config();
 
 // Define the schema (equivalent to Pydantic BaseSettings)
