@@ -29,9 +29,17 @@ export class JournalService {
   /**
    * Get a single journal entry by its UUID
    */
-  async getJournalByUuid(uuid, limit=1) {
-    const results = await this.repo.search(this.table, '*', 'uuid', uuid, limit);
-    return results.length > 0 ? results[0] : null;
+  async getJournalByUuid(uuid) {
+    const results = await this.repo.search(this.table, '*', 'uuid', uuid);
+    return results;
+  }
+
+  async getTodayJournal(data){
+    const uuid = data.uuid;
+    const date = data.created_date;
+
+    const results = await this.repo.client.from(this.table).eq('uuid', uuid).eq('created_date', date);
+    return results;
   }
 
   /**

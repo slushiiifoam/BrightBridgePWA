@@ -11,6 +11,13 @@ const createJournalSchema = z.object({
   entry: z.string().nullable().optional().default(null),
 });
 
+const todayJournalSchema = z.object({
+    uuid : z.string().uuid('Invalid user UUID'),
+    created_date: z
+        .string()
+        .regex(/^\d{4}-\d{2}-\d{2}$/, 'Date must be formatted as YYYY-MM-DD')
+});
+
 const updateJournalSchema = createJournalSchema.partial();
 
 const journal_router = express.Router();
@@ -47,7 +54,23 @@ journal_router.get('/', async (req, res, next) => {
 try {
     const journal = await journal_service.getJournalByUuid(req.uuid);
     if (!journal) {
-    return res.status(404).json({ success: false, error: 'Journal entry not found' });
+        return res.status(404).json({ success: false, error: 'Journal entry not found' });
+    }
+    res.json({ success: true, data: journal });
+} catch (err) {
+    next(err);
+}
+});
+
+// READ ONE: GET /api/journals/:uuid
+journal_router.get('/today', async (req, res, next) => {
+try {
+    const uuid = req.uuid; 
+    const payload = todayJournalSchema.parse({...req.body, uuid : uuid});
+
+    const journal = await journal_service.getTodayJournal(payload);
+    if (!journal) {
+        return res.status(404).json({ success: false, error: 'Journal entry not found' });
     }
     res.json({ success: true, data: journal });
 } catch (err) {

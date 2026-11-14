@@ -22,8 +22,15 @@ export class SupabaseRepository {
    * @param {number} [limit=50] 
    * @returns {Promise<Array<object>>}
    */
-  async search(table, fields = '*', column = null, value = null, limit = 50) {
-    let query = this.client.from(table).select(fields).limit(limit);
+  async search(table, fields = '*', column = null, value = null, limit = null) {
+
+    let query;
+
+    if (limit != null){
+      query = this.client.from(table).select(fields).limit(limit);
+    }else{
+      query = this.client.from(table).select(fields);
+    };
 
     if (column !== null && value !== null) {
       query = query.eq(column, value);
@@ -33,6 +40,10 @@ export class SupabaseRepository {
     if (error) throw error;
 
     return data ?? [];
+  }
+
+  async complexSearch(table, fields="*", ){
+
   }
 
   /**
