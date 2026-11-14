@@ -1,3 +1,5 @@
+import {auth_service} from '../services/setupService.js'
+
 /**
  * Middleware for verifying authentication cookies for protected routes.
  * Checks access_token first; if invalid/expired, attempts to refresh using refresh_token (uuid).
@@ -10,11 +12,8 @@ export const verifyAuthCookie = async (req, res, next) => {
     const jwtToken = req.cookies?.access_token;
     const uuidToken = req.cookies?.refresh_token;
 
-    // Retrieve authService attached to express app instance (req.app.locals)
-    const authService = req.app.locals.authService;
-
     // Verify current access token
-    let userUuid = jwtToken ? await authService.isValidJwt(jwtToken) : null;
+    let userUuid = jwtToken ? await auth_service.isValidJwt(jwtToken) : null;
 
     if (jwtToken && userUuid) {
       // Equivalent to request.state.uuid = user_uuid
@@ -29,17 +28,17 @@ export const verifyAuthCookie = async (req, res, next) => {
     }
 
     // Attempt JWT regeneration using refresh token
-    const regeneratedJwt = await authService.refreshJwt(uuidToken);
+    const regeneratedJwt = await auth_service.refreshJwt(uuidToken);
     if (!regeneratedJwt) {
       return res.status(401).json({
         detail: 'User not authorized. Please authenticate',
       });
     }
 
-    userUuid = await authService.isValidJwt(regeneratedJwt);
+    userUuid = await auth_service.isValidJwt(regeneratedJwt);
     req.uuid = userUuid;
 
-    const userCookieUuid = await authService.refreshUuid(uuidToken);
+    const userCookieUuid = await auth_service.refreshUuid(uuidToken);
 
     // Cookie configuration options
     const cookieOptions = {
