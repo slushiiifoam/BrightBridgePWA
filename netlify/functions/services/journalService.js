@@ -46,6 +46,6 @@ export class JournalService {
    * Delete a journal entry by its UUID
    */
   async deleteJournal(uuid, date) {
-    return await this.repo.client.from(this.table).eq('uuid', uuid).eq('created_date', date);
+    return await this.repo.client.from(this.table).delete().eq('uuid', uuid).eq('created_date', date);
   }
 }
