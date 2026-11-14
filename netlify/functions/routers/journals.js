@@ -19,7 +19,7 @@ const journal_router = express.Router();
 journal_router.post('/', async (req, res, next) => {
 try {
     const uuid = req.uuid;
-    const payload = {...req.body, uuid};
+    const payload = {...req.body, uuid : uuid};
 
     const validatedData = createJournalSchema.parse(payload);
     const created = await journal_service.createJournal(validatedData);
