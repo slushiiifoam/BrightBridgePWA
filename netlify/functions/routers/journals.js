@@ -22,19 +22,8 @@ try {
     const payload = {...req.body, uuid : uuid};
 
     const validatedData = createJournalSchema.parse(payload);
-    const created = await journal_service.createJournal(validatedData);
+    const created = await journal_service.upsertJournal(validatedData);
     res.status(201).json({ success: true, data: created });
-} catch (err) {
-    next(err);
-}
-});
-
-// READ ALL: GET /api/journals
-journal_router.get('/', async (req, res, next) => {
-try {
-    const limit = req.query.limit ? parseInt(req.query.limit, 10) : 50;
-    const journals = await journal_service.getAllJournals(limit);
-    res.json({ success: true, data: journals });
 } catch (err) {
     next(err);
 }
@@ -43,7 +32,7 @@ try {
 // READ ONE: GET /api/journals/:uuid
 journal_router.get('/:uuid', async (req, res, next) => {
 try {
-    const journal = await journal_service.getJournalByUuid(req.params.uuid);
+    const journal = await journal_service.getJournalByUuid(req.uuid);
     if (!journal) {
     return res.status(404).json({ success: false, error: 'Journal entry not found' });
     }
@@ -57,7 +46,7 @@ try {
 journal_router.put('/:uuid', async (req, res, next) => {
 try {
     const validatedData = updateJournalSchema.parse(req.body);
-    const updated = await journal_service.updateJournal(req.params.uuid, validatedData);
+    const updated = await journal_service.upsertJournal(req.params.uuid, validatedData);
     
     if (!updated) {
     return res.status(404).json({ success: false, error: 'Journal entry not found or no changes made' });

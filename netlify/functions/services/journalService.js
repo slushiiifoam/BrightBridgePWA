@@ -10,7 +10,7 @@ export class JournalService {
   /**
    * Create a new journal entry
    */
-  async createJournal(data) {
+  async upsertJournal(data) {
     const payload = {
       uuid: data.uuid,
       created_date: data.created_date,
@@ -19,6 +19,7 @@ export class JournalService {
     };
 
     const success = await this.repo.upsert(this.table, payload);
+
     if (!success) {
       throw new Error('Failed to insert journal entry');
     }
@@ -26,30 +27,11 @@ export class JournalService {
   }
 
   /**
-   * Get all journal entries
-   */
-  async getAllJournals(limit = 50) {
-    return await this.repo.search(this.table, '*', null, null, limit);
-  }
-
-  /**
    * Get a single journal entry by its UUID
    */
-  async getJournalByUuid(uuid) {
-    const results = await this.repo.search(this.table, '*', 'uuid', uuid, 1);
+  async getJournalByUuid(uuid, limit=1) {
+    const results = await this.repo.search(this.table, '*', 'uuid', uuid, limit);
     return results.length > 0 ? results[0] : null;
-  }
-
-  /**
-   * Update a journal entry by its UUID
-   */
-  async updateJournal(uuid, updateData) {
-    const success = await this.repo.update(this.table, 'uuid', uuid, updateData);
-    if (!success) {
-      return null;
-    }
-    // Return the updated state
-    return await this.getJournalByUuid(uuid);
   }
 
   /**
