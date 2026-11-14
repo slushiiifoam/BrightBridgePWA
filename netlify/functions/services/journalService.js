@@ -38,7 +38,7 @@ export class JournalService {
     const uuid = data.uuid;
     const date = data.created_date;
 
-    const results = await this.repo.client.from(this.table).eq('uuid', uuid).eq('created_date', date);
+    const results = await this.repo.client.from(this.table).eq('uuid', uuid).eq('created_date', date).select("*");
     return results;
   }
 
