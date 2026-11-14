@@ -9,10 +9,6 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import { z } from 'zod';
 
-// Resolve current directory path (ES modules equivalent to Path(__file__).resolve().parent)
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
 // Load .env file from the current directory
 dotenv.config({ path: path.resolve(__dirname, '.env') });
 
