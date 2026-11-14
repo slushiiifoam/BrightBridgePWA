@@ -22,4 +22,4 @@ app.use(router);
 setup_routers(app);
 
 // Export the handler wrapped with serverless-http
-export default serverless(app);
+export const handler = serverless(app);
