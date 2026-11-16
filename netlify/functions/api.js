@@ -5,13 +5,10 @@ import serverless from 'serverless-http'
 import setup_infrastructure from './infrastructure/setup.js'
 import setup_routers from './routers/setup.js'
 
+import { setup_error_handling } from './infrastructure/error_handler.js'
+
 const app = express();
 const router = express.Router();
-
-app.set('trust proxy', 1);
-
-// Middleware
-app.use(express.json());
 
 // Define your API routes on the router
 router.get('/', (req, res) => {
@@ -22,6 +19,8 @@ router.get('/', (req, res) => {
 setup_infrastructure(app);
 app.use('/api', router);
 setup_routers(app);
+
+setup_error_handling(app);
 
 // Export the handler wrapped with serverless-http
 export const handler = serverless(app);

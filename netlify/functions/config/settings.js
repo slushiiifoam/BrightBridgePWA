@@ -15,6 +15,7 @@ dotenv.config({ path: path.resolve(process.cwd(), 'netlify/functions/.env') });
 // Define the schema (equivalent to Pydantic BaseSettings)
 const settingsSchema = z.object({
   // Enforce type safety and coercion
+  NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
   HASH_ALGORITHM: z.string().default('HS256'),
   SECRET_KEY: z.string(),
   ACCESS_TOKEN_EXPIRE_MINUTES: z.coerce.number().default(30),
