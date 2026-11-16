@@ -3,7 +3,7 @@ import hpp from 'hpp'
 import express from 'express'
 
 import setup_helmet from './helmet.js';
-import setup_cors from './cors.js';
+import {setup_cors} from './cors.js';
 import limiter from './ratelimiter.js'
 
 function setup_infrastructure(app){

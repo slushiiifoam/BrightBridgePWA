@@ -1,4 +1,4 @@
-import { rateLimit } from 'express-rate-limit';
+import { rateLimit, ipKeyGenerator } from 'express-rate-limit';
 
 /**
  * rate limiter to prevent DDOS attacks
@@ -11,12 +11,13 @@ const limiter = rateLimit({
   standardHeaders: 'draft-8', // Return standard rate limit info in headers
   legacyHeaders: false,     // Disable X-RateLimit-* headers
   keyGenerator: (req) => {
-    return (
+    const rawIp =
       req.headers['x-nf-client-connection-ip'] ||
       req.ip ||
-      req.socket?.remoteAddress ||
-      'unknown-client'
-    );
+      req.socket?.remoteAddress;
+
+    // Normalize IPv4/IPv6 safely; fall back to a static string if no IP exists in serverless
+    return rawIp ? ipKeyGenerator(rawIp) : 'unknown-client';
   },
 });
 

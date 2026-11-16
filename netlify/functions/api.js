@@ -1,5 +1,5 @@
 // netlify/functions/api.js
-import { settings } from './infrastructure/settings.js';
+import { settings } from './config/settings.js';
 import express from 'express'
 import serverless from 'serverless-http'
 
