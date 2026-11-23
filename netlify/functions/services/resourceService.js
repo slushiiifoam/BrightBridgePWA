@@ -33,8 +33,8 @@ export class ResourceService {
    * @param {string} userUuid 
    */
   async _verifyUserPrivilege(userUuid) {
-    const userIsAdmin = await this.db.search('admin', '*', 'uuid', userUuid);
-    const userIsEditor = await this.db.search('editor', '*', 'uuid', userUuid);
+    const userIsAdmin = await this.db.search('admins', '*', 'uuid', userUuid);
+    const userIsEditor = await this.db.search('editors', '*', 'uuid', userUuid);
 
     const isAdmin = Array.isArray(userIsAdmin) && userIsAdmin.length > 0;
     const isEditor = Array.isArray(userIsEditor) && userIsEditor.length > 0;
@@ -53,7 +53,7 @@ export class ResourceService {
    * @returns {Promise<boolean>}
    */
   async upsertResource(userUuid, contents) {
-    // await this._verifyUserPrivilege(userUuid);
+    await this._verifyUserPrivilege(userUuid);
     const result = await this.db.upsert(this.table, contents);
     return result;
   }
@@ -65,7 +65,7 @@ export class ResourceService {
    * @returns {Promise<boolean>}
    */
   async removeResource(userUuid, resourceId) {
-    // await this._verifyUserPrivilege(userUuid);
+    await this._verifyUserPrivilege(userUuid);
     const result = await this.db.remove(this.table, 'id', resourceId);
     return result;
   }
