@@ -24,7 +24,7 @@ export class ResourceService {
       return await this.db.search(this.table);
     }
 
-    return await this.db.search(this.table, '*', 'title', query);
+    return await this.db.client.from(self.table).select().ilike("title", `%${query}%`);
   }
 
   /**
