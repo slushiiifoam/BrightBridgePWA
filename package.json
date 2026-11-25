@@ -7,7 +7,8 @@
     "dev": "vite",
     "build": "vite build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "test": "node --test --experimental-test-module-mocks netlify/lib/assistant/*.test.mjs"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^1.14.0",
