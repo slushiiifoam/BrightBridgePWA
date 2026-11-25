@@ -1054,3 +1054,15 @@
     gap: var(--spacing-sm);
   }
 }
+
+.assistant-usage {
+  margin-top: var(--spacing-xs);
+  color: var(--dark-gray);
+  font-size: var(--font-size-xs);
+  text-align: center;
+}
+
+.assistant-citation {
+  color: var(--dark-gray);
+  font-size: var(--font-size-xs);
+}

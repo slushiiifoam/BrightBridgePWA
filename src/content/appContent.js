@@ -1,6 +1,7 @@
 // Shared copy keeps repeated dashboard and help cards data-driven and easy to update.
 export const dashboardLinks = [
   { icon: '🧘', label: 'Grounding Tools', to: '/grounding' },
+  { icon: '🔎', label: 'Find Resources', to: '/assistant' },
   { icon: '📚', label: 'Resources', to: '/resources' },
   { icon: '✍️', label: 'Daily Check-In', to: '/daily-checkin' },
   { icon: '🤝', label: 'Conflict De-Escalation', to: '/conflict' },

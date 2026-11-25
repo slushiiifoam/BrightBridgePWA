@@ -1,6 +1,7 @@
 import { BrowserRouter, Navigate, Route, Routes, useLocation } from 'react-router-dom'
 import { AuthProvider } from '../features/auth/AuthProvider.jsx'
 import ProtectedRoute from '../features/auth/ProtectedRoute.jsx'
+import AssistantPage from '../pages/AssistantPage.jsx'
 import DailyCheckinPage from '../pages/DailyCheckinPage.jsx'
 import { HelpPage, RelationshipHelpPage } from '../pages/HelpPages.jsx'
 import HomePage from '../pages/HomePage.jsx'
@@ -38,6 +39,7 @@ function AppRoutes() {
         <Route path="/home" element={<HomePage />} />
         <Route path="/journal/today" element={<JournalPage />} />
         <Route path="/daily-checkin" element={<DailyCheckinPage />} />
+        <Route path="/assistant" element={<AssistantPage />} />
       </Route>
 
       <Route path="/index.html" element={<Navigate to="/" replace />} />
